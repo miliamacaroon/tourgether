@@ -33,35 +33,26 @@ serve(async (req) => {
   }
 
   try {
-    // Authentication check
+    // Optional authentication - works for both logged in and anonymous users
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      console.error("Missing or invalid authorization header");
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized - Please log in to generate itineraries' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token);
+    let userId = 'anonymous';
     
-    if (claimsError || !claimsData?.claims) {
-      console.error("Authentication failed:", claimsError?.message);
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized - Invalid session' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    if (authHeader?.startsWith('Bearer ')) {
+      const supabaseClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+        { global: { headers: { Authorization: authHeader } } }
       );
-    }
 
-    const userId = claimsData.claims.sub;
-    console.log("Authenticated user:", userId);
+      const token = authHeader.replace('Bearer ', '');
+      const { data: claimsData } = await supabaseClient.auth.getClaims(token);
+      
+      if (claimsData?.claims?.sub) {
+        userId = claimsData.claims.sub;
+      }
+    }
+    
+    console.log("Processing request for user:", userId);
 
     // Parse and validate input
     const rawData = await req.json();
