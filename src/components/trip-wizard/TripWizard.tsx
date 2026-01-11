@@ -9,6 +9,7 @@ import { PreferencesStep } from './PreferencesStep';
 import { ReviewStep } from './ReviewStep';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { generateItinerary } from '@/services/itineraryService';
 
 export const TripWizard = () => {
   const navigate = useNavigate();
@@ -26,22 +27,34 @@ export const TripWizard = () => {
     getDaysCount,
   } = useTripWizard();
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     setIsGenerating(true);
-    // Simulate generation - in real app this would call your backend
-    toast.success('Your itinerary is being created!');
     
-    // Store trip data in session storage for the results page
-    sessionStorage.setItem('tripData', JSON.stringify({
+    const storedData = {
       ...tripData,
-      startDate: tripData.startDate?.toISOString(),
-      endDate: tripData.endDate?.toISOString(),
+      startDate: tripData.startDate?.toISOString() || '',
+      endDate: tripData.endDate?.toISOString() || '',
       daysCount: getDaysCount(),
-    }));
+    };
     
-    setTimeout(() => {
+    // Store basic trip data in session storage
+    sessionStorage.setItem('tripData', JSON.stringify(storedData));
+    
+    try {
+      toast.info('🤖 AI is crafting your perfect itinerary...', { duration: 10000 });
+      
+      const result = await generateItinerary(storedData);
+      
+      // Store the generated itinerary
+      sessionStorage.setItem('generatedItinerary', result.itinerary);
+      
+      toast.success('✨ Your itinerary is ready!');
       navigate('/itinerary');
-    }, 1500);
+    } catch (error) {
+      console.error('Error generating itinerary:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to generate itinerary. Please try again.');
+      setIsGenerating(false);
+    }
   };
 
   const renderStep = () => {
@@ -94,7 +107,7 @@ export const TripWizard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-24">
       {/* Progress Bar */}
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border">
         <WizardProgress
@@ -115,7 +128,7 @@ export const TripWizard = () => {
           <Button
             variant="ghost"
             onClick={prevStep}
-            disabled={step === 1}
+            disabled={step === 1 || isGenerating}
             className="gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
