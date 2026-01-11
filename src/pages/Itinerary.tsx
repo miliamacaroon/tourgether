@@ -146,19 +146,57 @@ const Itinerary = () => {
       {/* Itinerary Content */}
       <section className="py-12">
         <div className="container max-w-4xl mx-auto px-4">
-          <Card className="overflow-hidden">
+          <Card className="overflow-hidden shadow-lg">
             <CardContent className="p-6 md:p-10">
-              <div className="prose prose-sm md:prose-base max-w-none dark:prose-invert
-                prose-headings:text-foreground prose-headings:font-bold
-                prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4 prose-h2:text-primary
-                prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-3
-                prose-p:text-muted-foreground prose-p:leading-relaxed
-                prose-li:text-muted-foreground
-                prose-strong:text-foreground
-                prose-ul:my-2 prose-ol:my-2
-              ">
-                <ReactMarkdown>{itinerary}</ReactMarkdown>
-              </div>
+              <ReactMarkdown
+                components={{
+                  h2: ({ children }) => (
+                    <div className="mt-10 first:mt-0 mb-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg shrink-0 shadow-md">
+                          {String(children).match(/Day (\d+)/)?.[1] || '📍'}
+                        </div>
+                        <div>
+                          <h2 className="text-xl md:text-2xl font-bold text-foreground">{children}</h2>
+                        </div>
+                      </div>
+                    </div>
+                  ),
+                  h3: ({ children }) => (
+                    <div className="mt-6 mb-3 ml-4 md:ml-16">
+                      <div className="inline-flex items-center gap-2 bg-accent px-4 py-2 rounded-lg border border-border">
+                        <span className="text-sm font-semibold text-accent-foreground">{children}</span>
+                      </div>
+                    </div>
+                  ),
+                  p: ({ children }) => (
+                    <p className="text-muted-foreground leading-relaxed mb-4 ml-4 md:ml-16 text-sm md:text-base">{children}</p>
+                  ),
+                  ul: ({ children }) => (
+                    <ul className="space-y-3 mb-6 ml-4 md:ml-16 list-none">{children}</ul>
+                  ),
+                  ol: ({ children }) => (
+                    <ol className="space-y-3 mb-6 ml-4 md:ml-16 list-none">{children}</ol>
+                  ),
+                  li: ({ children }) => (
+                    <li className="flex items-start gap-3 text-muted-foreground text-sm md:text-base bg-muted/30 p-3 rounded-lg">
+                      <span className="text-primary text-lg">▸</span>
+                      <span className="flex-1">{children}</span>
+                    </li>
+                  ),
+                  strong: ({ children }) => (
+                    <strong className="font-semibold text-foreground">{children}</strong>
+                  ),
+                  em: ({ children }) => (
+                    <span className="text-primary font-medium">{children}</span>
+                  ),
+                  hr: () => (
+                    <hr className="my-8 border-border ml-4 md:ml-16" />
+                  ),
+                }}
+              >
+                {itinerary}
+              </ReactMarkdown>
             </CardContent>
           </Card>
         </div>
