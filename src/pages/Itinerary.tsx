@@ -71,50 +71,56 @@ const Itinerary = () => {
 
       // Helper function to add new page if needed
       const checkPageBreak = (requiredHeight: number) => {
-        if (yPosition + requiredHeight > pageHeight - margin) {
+        if (yPosition + requiredHeight > pageHeight - 25) {
           doc.addPage();
-          yPosition = margin;
+          yPosition = margin + 10;
           return true;
         }
         return false;
       };
 
       // Header with brand color
-      doc.setFillColor(147, 51, 234); // Purple/primary color
-      doc.rect(0, 0, pageWidth, 45, 'F');
+      doc.setFillColor(147, 51, 234);
+      doc.rect(0, 0, pageWidth, 50, 'F');
       
       // Title
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(24);
+      doc.setFontSize(28);
       doc.setFont('helvetica', 'bold');
-      doc.text('TourGether', pageWidth / 2, 18, { align: 'center' });
+      doc.text('TourGether', pageWidth / 2, 22, { align: 'center' });
       
-      doc.setFontSize(14);
+      doc.setFontSize(16);
       doc.setFont('helvetica', 'normal');
-      doc.text(`Your Trip to ${tripData.destination}`, pageWidth / 2, 32, { align: 'center' });
+      doc.text(`Your Trip to ${tripData.destination}`, pageWidth / 2, 38, { align: 'center' });
       
-      yPosition = 60;
+      yPosition = 65;
       
       // Trip Summary Box
-      doc.setFillColor(248, 250, 252);
-      doc.roundedRect(margin, yPosition, contentWidth, 35, 3, 3, 'F');
+      doc.setFillColor(250, 245, 255);
+      doc.roundedRect(margin, yPosition, contentWidth, 45, 4, 4, 'F');
+      doc.setDrawColor(147, 51, 234);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(margin, yPosition, contentWidth, 45, 4, 4, 'S');
       
-      doc.setTextColor(100, 100, 100);
+      const colWidth = contentWidth / 4;
+      
+      doc.setTextColor(120, 120, 120);
       doc.setFontSize(9);
-      doc.text('DATES', margin + 10, yPosition + 10);
-      doc.text('DURATION', margin + 55, yPosition + 10);
-      doc.text('BUDGET', margin + 100, yPosition + 10);
-      doc.text('TRAVELERS', margin + 145, yPosition + 10);
+      doc.setFont('helvetica', 'normal');
+      doc.text('DATES', margin + colWidth * 0 + 10, yPosition + 14);
+      doc.text('DURATION', margin + colWidth * 1 + 10, yPosition + 14);
+      doc.text('BUDGET', margin + colWidth * 2 + 10, yPosition + 14);
+      doc.text('TRAVELERS', margin + colWidth * 3 + 10, yPosition + 14);
       
-      doc.setTextColor(30, 30, 30);
-      doc.setFontSize(10);
+      doc.setTextColor(40, 40, 40);
+      doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
-      doc.text(`${formatDate(tripData.startDate)}`, margin + 10, yPosition + 20);
-      doc.text(`${tripData.daysCount} days`, margin + 55, yPosition + 20);
-      doc.text(`${tripData.currency} ${tripData.budgetMin.toLocaleString()}-${tripData.budgetMax.toLocaleString()}`, margin + 100, yPosition + 20);
-      doc.text(`${tripData.travelers} ${tripData.travelers === 1 ? 'person' : 'people'}`, margin + 145, yPosition + 20);
+      doc.text(`${formatDate(tripData.startDate)}`, margin + colWidth * 0 + 10, yPosition + 28);
+      doc.text(`${tripData.daysCount} days`, margin + colWidth * 1 + 10, yPosition + 28);
+      doc.text(`${tripData.currency} ${tripData.budgetMin.toLocaleString()}-${tripData.budgetMax.toLocaleString()}`, margin + colWidth * 2 + 10, yPosition + 28);
+      doc.text(`${tripData.travelers} ${tripData.travelers === 1 ? 'person' : 'people'}`, margin + colWidth * 3 + 10, yPosition + 28);
       
-      yPosition += 50;
+      yPosition += 60;
       
       // Parse and render markdown content
       const lines = itinerary.split('\n');
@@ -122,83 +128,93 @@ const Itinerary = () => {
       for (const line of lines) {
         const trimmedLine = line.trim();
         if (!trimmedLine) {
-          yPosition += 4;
+          yPosition += 5;
           continue;
         }
         
         // Day headers (## Day X)
         if (trimmedLine.startsWith('## ')) {
-          checkPageBreak(25);
-          yPosition += 8;
+          checkPageBreak(30);
+          yPosition += 12;
           
           // Day badge
           const dayMatch = trimmedLine.match(/Day (\d+)/);
           const dayNum = dayMatch ? dayMatch[1] : '•';
           
           doc.setFillColor(147, 51, 234);
-          doc.circle(margin + 8, yPosition + 3, 8, 'F');
+          doc.circle(margin + 10, yPosition + 2, 10, 'F');
           doc.setTextColor(255, 255, 255);
-          doc.setFontSize(10);
+          doc.setFontSize(12);
           doc.setFont('helvetica', 'bold');
-          doc.text(dayNum, margin + 8, yPosition + 6, { align: 'center' });
+          doc.text(dayNum, margin + 10, yPosition + 6, { align: 'center' });
           
           // Day title
-          doc.setTextColor(30, 30, 30);
-          doc.setFontSize(14);
-          doc.text(trimmedLine.replace('## ', ''), margin + 22, yPosition + 6);
+          doc.setTextColor(40, 40, 40);
+          doc.setFontSize(16);
+          doc.text(trimmedLine.replace('## ', ''), margin + 26, yPosition + 6);
           
-          yPosition += 18;
+          // Underline
+          doc.setDrawColor(147, 51, 234);
+          doc.setLineWidth(0.5);
+          doc.line(margin + 26, yPosition + 10, pageWidth - margin, yPosition + 10);
+          
+          yPosition += 22;
         }
         // Time of day headers (### Morning, etc)
         else if (trimmedLine.startsWith('### ')) {
-          checkPageBreak(15);
-          yPosition += 5;
+          checkPageBreak(18);
+          yPosition += 6;
+          
+          const timeText = trimmedLine.replace('### ', '');
+          const textWidth = doc.getTextWidth(timeText) + 12;
           
           doc.setFillColor(243, 232, 255);
-          doc.roundedRect(margin + 15, yPosition - 4, 60, 10, 2, 2, 'F');
+          doc.roundedRect(margin + 20, yPosition - 5, textWidth, 12, 3, 3, 'F');
           
           doc.setTextColor(107, 33, 168);
-          doc.setFontSize(9);
-          doc.setFont('helvetica', 'bold');
-          doc.text(trimmedLine.replace('### ', ''), margin + 18, yPosition + 2);
-          
-          yPosition += 12;
-        }
-        // Bold text
-        else if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
-          checkPageBreak(10);
-          doc.setTextColor(50, 50, 50);
           doc.setFontSize(10);
           doc.setFont('helvetica', 'bold');
+          doc.text(timeText, margin + 26, yPosition + 2);
+          
+          yPosition += 16;
+        }
+        // Bold text (activity titles)
+        else if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
+          checkPageBreak(14);
+          doc.setTextColor(50, 50, 50);
+          doc.setFontSize(11);
+          doc.setFont('helvetica', 'bold');
           const cleanText = trimmedLine.replace(/\*\*/g, '');
-          const splitText = doc.splitTextToSize(cleanText, contentWidth - 20);
-          doc.text(splitText, margin + 20, yPosition);
-          yPosition += splitText.length * 5 + 3;
+          const splitText = doc.splitTextToSize(cleanText, contentWidth - 30);
+          doc.text(splitText, margin + 26, yPosition);
+          yPosition += splitText.length * 6 + 4;
         }
         // List items
         else if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ')) {
-          checkPageBreak(12);
-          doc.setTextColor(107, 33, 168);
-          doc.setFontSize(10);
-          doc.text('▸', margin + 20, yPosition);
+          checkPageBreak(16);
           
-          doc.setTextColor(80, 80, 80);
+          // Bullet point
+          doc.setFillColor(147, 51, 234);
+          doc.circle(margin + 28, yPosition - 1, 2, 'F');
+          
+          doc.setTextColor(70, 70, 70);
+          doc.setFontSize(10);
           doc.setFont('helvetica', 'normal');
           const cleanText = trimmedLine.replace(/^[-*]\s*/, '').replace(/\*\*/g, '').replace(/\*/g, '');
-          const splitText = doc.splitTextToSize(cleanText, contentWidth - 35);
-          doc.text(splitText, margin + 28, yPosition);
-          yPosition += splitText.length * 5 + 3;
+          const splitText = doc.splitTextToSize(cleanText, contentWidth - 45);
+          doc.text(splitText, margin + 36, yPosition);
+          yPosition += splitText.length * 6 + 4;
         }
         // Regular paragraphs
         else if (!trimmedLine.startsWith('#')) {
-          checkPageBreak(10);
+          checkPageBreak(14);
           doc.setTextColor(80, 80, 80);
           doc.setFontSize(10);
           doc.setFont('helvetica', 'normal');
           const cleanText = trimmedLine.replace(/\*\*/g, '').replace(/\*/g, '');
-          const splitText = doc.splitTextToSize(cleanText, contentWidth - 20);
-          doc.text(splitText, margin + 20, yPosition);
-          yPosition += splitText.length * 5 + 2;
+          const splitText = doc.splitTextToSize(cleanText, contentWidth - 30);
+          doc.text(splitText, margin + 26, yPosition);
+          yPosition += splitText.length * 6 + 4;
         }
       }
       
@@ -265,8 +281,9 @@ const Itinerary = () => {
             <Button variant="outline" size="icon" onClick={() => toast.success('Sharing coming soon!')}>
               <Share2 className="w-4 h-4" />
             </Button>
-            <Button variant="outline" size="icon" onClick={exportToPDF} disabled={isExporting}>
+            <Button onClick={exportToPDF} disabled={isExporting} className="gap-2">
               {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              <span className="hidden sm:inline">Download PDF</span>
             </Button>
           </div>
         </div>
