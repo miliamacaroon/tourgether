@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Globe, MapPin, Calendar, Wallet, Users, Download, Share2, Sparkles, Clock } from 'lucide-react';
+import { ArrowLeft, Globe, Calendar, Wallet, Users, Download, Share2, Sparkles, Clock, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
+import jsPDF from 'jspdf';
 
 interface StoredTripData {
   destination: string;
@@ -25,6 +26,7 @@ const Itinerary = () => {
   const [tripData, setTripData] = useState<StoredTripData | null>(null);
   const [itinerary, setItinerary] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     const storedTripData = sessionStorage.getItem('tripData');
@@ -46,6 +48,184 @@ const Itinerary = () => {
     setIsLoading(false);
   }, [navigate]);
 
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
+  const exportToPDF = async () => {
+    if (!tripData) return;
+    
+    setIsExporting(true);
+    
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 20;
+      const contentWidth = pageWidth - margin * 2;
+      let yPosition = margin;
+
+      // Helper function to add new page if needed
+      const checkPageBreak = (requiredHeight: number) => {
+        if (yPosition + requiredHeight > pageHeight - margin) {
+          doc.addPage();
+          yPosition = margin;
+          return true;
+        }
+        return false;
+      };
+
+      // Header with brand color
+      doc.setFillColor(147, 51, 234); // Purple/primary color
+      doc.rect(0, 0, pageWidth, 45, 'F');
+      
+      // Title
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(24);
+      doc.setFont('helvetica', 'bold');
+      doc.text('TourGether', pageWidth / 2, 18, { align: 'center' });
+      
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Your Trip to ${tripData.destination}`, pageWidth / 2, 32, { align: 'center' });
+      
+      yPosition = 60;
+      
+      // Trip Summary Box
+      doc.setFillColor(248, 250, 252);
+      doc.roundedRect(margin, yPosition, contentWidth, 35, 3, 3, 'F');
+      
+      doc.setTextColor(100, 100, 100);
+      doc.setFontSize(9);
+      doc.text('DATES', margin + 10, yPosition + 10);
+      doc.text('DURATION', margin + 55, yPosition + 10);
+      doc.text('BUDGET', margin + 100, yPosition + 10);
+      doc.text('TRAVELERS', margin + 145, yPosition + 10);
+      
+      doc.setTextColor(30, 30, 30);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${formatDate(tripData.startDate)}`, margin + 10, yPosition + 20);
+      doc.text(`${tripData.daysCount} days`, margin + 55, yPosition + 20);
+      doc.text(`${tripData.currency} ${tripData.budgetMin.toLocaleString()}-${tripData.budgetMax.toLocaleString()}`, margin + 100, yPosition + 20);
+      doc.text(`${tripData.travelers} ${tripData.travelers === 1 ? 'person' : 'people'}`, margin + 145, yPosition + 20);
+      
+      yPosition += 50;
+      
+      // Parse and render markdown content
+      const lines = itinerary.split('\n');
+      
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        if (!trimmedLine) {
+          yPosition += 4;
+          continue;
+        }
+        
+        // Day headers (## Day X)
+        if (trimmedLine.startsWith('## ')) {
+          checkPageBreak(25);
+          yPosition += 8;
+          
+          // Day badge
+          const dayMatch = trimmedLine.match(/Day (\d+)/);
+          const dayNum = dayMatch ? dayMatch[1] : '•';
+          
+          doc.setFillColor(147, 51, 234);
+          doc.circle(margin + 8, yPosition + 3, 8, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'bold');
+          doc.text(dayNum, margin + 8, yPosition + 6, { align: 'center' });
+          
+          // Day title
+          doc.setTextColor(30, 30, 30);
+          doc.setFontSize(14);
+          doc.text(trimmedLine.replace('## ', ''), margin + 22, yPosition + 6);
+          
+          yPosition += 18;
+        }
+        // Time of day headers (### Morning, etc)
+        else if (trimmedLine.startsWith('### ')) {
+          checkPageBreak(15);
+          yPosition += 5;
+          
+          doc.setFillColor(243, 232, 255);
+          doc.roundedRect(margin + 15, yPosition - 4, 60, 10, 2, 2, 'F');
+          
+          doc.setTextColor(107, 33, 168);
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'bold');
+          doc.text(trimmedLine.replace('### ', ''), margin + 18, yPosition + 2);
+          
+          yPosition += 12;
+        }
+        // Bold text
+        else if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
+          checkPageBreak(10);
+          doc.setTextColor(50, 50, 50);
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'bold');
+          const cleanText = trimmedLine.replace(/\*\*/g, '');
+          const splitText = doc.splitTextToSize(cleanText, contentWidth - 20);
+          doc.text(splitText, margin + 20, yPosition);
+          yPosition += splitText.length * 5 + 3;
+        }
+        // List items
+        else if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ')) {
+          checkPageBreak(12);
+          doc.setTextColor(107, 33, 168);
+          doc.setFontSize(10);
+          doc.text('▸', margin + 20, yPosition);
+          
+          doc.setTextColor(80, 80, 80);
+          doc.setFont('helvetica', 'normal');
+          const cleanText = trimmedLine.replace(/^[-*]\s*/, '').replace(/\*\*/g, '').replace(/\*/g, '');
+          const splitText = doc.splitTextToSize(cleanText, contentWidth - 35);
+          doc.text(splitText, margin + 28, yPosition);
+          yPosition += splitText.length * 5 + 3;
+        }
+        // Regular paragraphs
+        else if (!trimmedLine.startsWith('#')) {
+          checkPageBreak(10);
+          doc.setTextColor(80, 80, 80);
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'normal');
+          const cleanText = trimmedLine.replace(/\*\*/g, '').replace(/\*/g, '');
+          const splitText = doc.splitTextToSize(cleanText, contentWidth - 20);
+          doc.text(splitText, margin + 20, yPosition);
+          yPosition += splitText.length * 5 + 2;
+        }
+      }
+      
+      // Footer on last page
+      const totalPages = doc.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setFillColor(248, 250, 252);
+        doc.rect(0, pageHeight - 15, pageWidth, 15, 'F');
+        doc.setTextColor(150, 150, 150);
+        doc.setFontSize(8);
+        doc.text(`Generated by TourGether • Page ${i} of ${totalPages}`, pageWidth / 2, pageHeight - 6, { align: 'center' });
+      }
+      
+      // Save the PDF
+      const fileName = `TourGether-${tripData.destination.replace(/[^a-zA-Z0-9]/g, '-')}-Itinerary.pdf`;
+      doc.save(fileName);
+      
+      toast.success('PDF downloaded successfully!');
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast.error('Failed to export PDF. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   if (isLoading || !tripData) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -56,14 +236,6 @@ const Itinerary = () => {
       </div>
     );
   }
-
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -84,8 +256,8 @@ const Itinerary = () => {
             <Button variant="outline" size="icon" onClick={() => toast.success('Sharing coming soon!')}>
               <Share2 className="w-4 h-4" />
             </Button>
-            <Button variant="outline" size="icon" onClick={() => toast.success('PDF export coming soon!')}>
-              <Download className="w-4 h-4" />
+            <Button variant="outline" size="icon" onClick={exportToPDF} disabled={isExporting}>
+              {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
             </Button>
           </div>
         </div>
