@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Globe, MapPin, Calendar, Wallet, Users, Download, Share2, Sparkles, Clock, Utensils, Camera, Coffee, Sunset, Moon } from 'lucide-react';
+import { ArrowLeft, Globe, MapPin, Calendar, Wallet, Users, Download, Share2, Sparkles, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
+import ReactMarkdown from 'react-markdown';
 
 interface StoredTripData {
   destination: string;
@@ -20,44 +20,39 @@ interface StoredTripData {
   daysCount: number;
 }
 
-// Sample itinerary data - in real app this would come from AI backend
-const generateSampleItinerary = (destination: string, days: number) => {
-  const activities = [
-    { time: '09:00', icon: Coffee, title: 'Morning Start', description: 'Breakfast at a local café' },
-    { time: '10:30', icon: Camera, title: 'Sightseeing', description: 'Visit iconic landmarks' },
-    { time: '13:00', icon: Utensils, title: 'Lunch Break', description: 'Try authentic local cuisine' },
-    { time: '15:00', icon: MapPin, title: 'Explore', description: 'Discover hidden gems' },
-    { time: '18:00', icon: Sunset, title: 'Golden Hour', description: 'Perfect photo opportunities' },
-    { time: '20:00', icon: Moon, title: 'Evening', description: 'Dinner and nightlife' },
-  ];
-
-  return Array.from({ length: days }, (_, i) => ({
-    day: i + 1,
-    title: `Day ${i + 1} in ${destination}`,
-    activities: activities.slice(0, 4 + (i % 3)),
-  }));
-};
-
 const Itinerary = () => {
   const navigate = useNavigate();
   const [tripData, setTripData] = useState<StoredTripData | null>(null);
-  const [itinerary, setItinerary] = useState<{ day: number; title: string; activities: any[] }[]>([]);
+  const [itinerary, setItinerary] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const stored = sessionStorage.getItem('tripData');
-    if (stored) {
-      const data = JSON.parse(stored) as StoredTripData;
-      setTripData(data);
-      setItinerary(generateSampleItinerary(data.destination, data.daysCount));
-    } else {
-      navigate('/plan');
+    const storedTripData = sessionStorage.getItem('tripData');
+    const storedItinerary = sessionStorage.getItem('generatedItinerary');
+    
+    if (storedTripData) {
+      setTripData(JSON.parse(storedTripData));
     }
+    
+    if (storedItinerary) {
+      setItinerary(storedItinerary);
+    }
+    
+    if (!storedTripData || !storedItinerary) {
+      navigate('/plan');
+      return;
+    }
+    
+    setIsLoading(false);
   }, [navigate]);
 
-  if (!tripData) {
+  if (isLoading || !tripData) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+        <div className="text-center">
+          <div className="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading your itinerary...</p>
+        </div>
       </div>
     );
   }
@@ -148,48 +143,24 @@ const Itinerary = () => {
         </div>
       </section>
 
-      {/* Itinerary */}
+      {/* Itinerary Content */}
       <section className="py-12">
         <div className="container max-w-4xl mx-auto px-4">
-          <h2 className="text-2xl font-bold text-foreground mb-8 text-center">Day-by-Day Itinerary</h2>
-          
-          <div className="space-y-8">
-            {itinerary.map((day) => (
-              <Card key={day.day} className="overflow-hidden">
-                <CardHeader className="bg-primary/10">
-                  <CardTitle className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
-                      {day.day}
-                    </div>
-                    <span>{day.title}</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="space-y-4">
-                    {day.activities.map((activity, idx) => (
-                      <div key={idx}>
-                        <div className="flex items-start gap-4">
-                          <div className="flex-shrink-0 w-16 text-sm font-medium text-muted-foreground">
-                            {activity.time}
-                          </div>
-                          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                            <activity.icon className="w-5 h-5 text-primary" />
-                          </div>
-                          <div>
-                            <p className="font-semibold">{activity.title}</p>
-                            <p className="text-sm text-muted-foreground">{activity.description}</p>
-                          </div>
-                        </div>
-                        {idx < day.activities.length - 1 && (
-                          <Separator className="my-4 ml-20" />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <Card className="overflow-hidden">
+            <CardContent className="p-6 md:p-10">
+              <div className="prose prose-sm md:prose-base max-w-none dark:prose-invert
+                prose-headings:text-foreground prose-headings:font-bold
+                prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4 prose-h2:text-primary
+                prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-3
+                prose-p:text-muted-foreground prose-p:leading-relaxed
+                prose-li:text-muted-foreground
+                prose-strong:text-foreground
+                prose-ul:my-2 prose-ol:my-2
+              ">
+                <ReactMarkdown>{itinerary}</ReactMarkdown>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
@@ -203,6 +174,7 @@ const Itinerary = () => {
             </Button>
             <Button onClick={() => {
               sessionStorage.removeItem('tripData');
+              sessionStorage.removeItem('generatedItinerary');
               navigate('/plan');
             }}>
               Plan New Trip
@@ -215,7 +187,7 @@ const Itinerary = () => {
       <footer className="py-8 bg-background border-t border-border">
         <div className="container max-w-6xl mx-auto px-4 text-center">
           <p className="text-muted-foreground text-sm">
-            © 2025 TourGether • Powered by AI Vision & RAG
+            © 2025 TourGether • Powered by AI
           </p>
         </div>
       </footer>
