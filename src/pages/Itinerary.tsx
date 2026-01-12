@@ -351,24 +351,26 @@ const Itinerary = () => {
                   h2: ({ children }) => (
                     <div className="mt-10 first:mt-0 mb-6">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg shrink-0 shadow-md">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-bold text-lg shrink-0 shadow-lg shadow-primary/25">
                           {String(children).match(/Day (\d+)/)?.[1] || '📍'}
                         </div>
                         <div>
                           <h2 className="text-xl md:text-2xl font-bold text-foreground">{children}</h2>
+                          <div className="h-1 w-16 bg-gradient-to-r from-primary to-primary/40 rounded-full mt-2"></div>
                         </div>
                       </div>
                     </div>
                   ),
                   h3: ({ children }) => (
                     <div className="mt-6 mb-3 ml-4 md:ml-16">
-                      <div className="inline-flex items-center gap-2 bg-accent px-4 py-2 rounded-lg border border-border">
-                        <span className="text-sm font-semibold text-accent-foreground">{children}</span>
+                      <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full border border-primary/20">
+                        <span className="w-2 h-2 rounded-full bg-primary"></span>
+                        <span className="text-sm font-semibold text-primary">{children}</span>
                       </div>
                     </div>
                   ),
                   p: ({ children }) => (
-                    <p className="text-muted-foreground leading-relaxed mb-4 ml-4 md:ml-16 text-sm md:text-base">{children}</p>
+                    <p className="text-foreground/80 leading-relaxed mb-4 ml-4 md:ml-16 text-sm md:text-base">{children}</p>
                   ),
                   ul: ({ children }) => (
                     <ul className="space-y-3 mb-6 ml-4 md:ml-16 list-none">{children}</ul>
@@ -377,19 +379,19 @@ const Itinerary = () => {
                     <ol className="space-y-3 mb-6 ml-4 md:ml-16 list-none">{children}</ol>
                   ),
                   li: ({ children }) => (
-                    <li className="flex items-start gap-3 text-muted-foreground text-sm md:text-base bg-muted/30 p-3 rounded-lg">
+                    <li className="flex items-start gap-3 text-foreground/80 text-sm md:text-base bg-primary/5 p-3 rounded-lg border-l-4 border-primary/40 hover:border-primary transition-colors">
                       <span className="text-primary text-lg">▸</span>
                       <span className="flex-1">{children}</span>
                     </li>
                   ),
                   strong: ({ children }) => (
-                    <strong className="font-semibold text-foreground">{children}</strong>
+                    <strong className="font-semibold text-primary">{children}</strong>
                   ),
                   em: ({ children }) => (
-                    <span className="text-primary font-medium">{children}</span>
+                    <span className="text-accent-foreground font-medium italic">{children}</span>
                   ),
                   hr: () => (
-                    <hr className="my-8 border-border ml-4 md:ml-16" />
+                    <hr className="my-8 border-primary/20 ml-4 md:ml-16" />
                   ),
                 }}
               >
