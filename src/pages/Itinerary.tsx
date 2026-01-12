@@ -84,6 +84,11 @@ const Itinerary = () => {
       const mediumGray = { r: 100, g: 100, b: 120 };
       const lightGray = { r: 248, g: 250, b: 252 };
 
+      // Helper to strip emojis from text (jsPDF doesn't support them)
+      const stripEmojis = (text: string) => {
+        return text.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FA6F}]|[\u{1FA70}-\u{1FAFF}]|[\u{231A}-\u{231B}]|[\u{23E9}-\u{23F3}]|[\u{23F8}-\u{23FA}]|[\u{25AA}-\u{25AB}]|[\u{25B6}]|[\u{25C0}]|[\u{25FB}-\u{25FE}]|[\u{2614}-\u{2615}]|[\u{2648}-\u{2653}]|[\u{267F}]|[\u{2693}]|[\u{26A1}]|[\u{26AA}-\u{26AB}]|[\u{26BD}-\u{26BE}]|[\u{26C4}-\u{26C5}]|[\u{26CE}]|[\u{26D4}]|[\u{26EA}]|[\u{26F2}-\u{26F3}]|[\u{26F5}]|[\u{26FA}]|[\u{26FD}]|[\u{2702}]|[\u{2705}]|[\u{2708}-\u{270D}]|[\u{270F}]|[\u{2712}]|[\u{2714}]|[\u{2716}]|[\u{271D}]|[\u{2721}]|[\u{2728}]|[\u{2733}-\u{2734}]|[\u{2744}]|[\u{2747}]|[\u{274C}]|[\u{274E}]|[\u{2753}-\u{2755}]|[\u{2757}]|[\u{2763}-\u{2764}]|[\u{2795}-\u{2797}]|[\u{27A1}]|[\u{27B0}]|[\u{27BF}]|[\u{2934}-\u{2935}]|[\u{2B05}-\u{2B07}]|[\u{2B1B}-\u{2B1C}]|[\u{2B50}]|[\u{2B55}]|[\u{3030}]|[\u{303D}]|[\u{3297}]|[\u{3299}]/gu, '').trim();
+      };
+
       // Helper function to add new page if needed
       const checkPageBreak = (requiredHeight: number) => {
         if (yPosition + requiredHeight > pageHeight - 30) {
@@ -191,12 +196,86 @@ const Itinerary = () => {
       // Parse and render markdown content
       const lines = itinerary.split('\n');
       let currentDayColor = primary;
+      let inTable = false;
+      let tableHeaders: string[] = [];
+      let tableRows: string[][] = [];
       
-      for (const line of lines) {
+      const renderTable = () => {
+        if (tableHeaders.length === 0 && tableRows.length === 0) return;
+        
+        checkPageBreak(20 + tableRows.length * 12);
+        
+        const colCount = tableHeaders.length || (tableRows[0]?.length || 2);
+        const colWidth = (contentWidth - 10) / colCount;
+        
+        // Table header
+        if (tableHeaders.length > 0) {
+          doc.setFillColor(primaryDark.r, primaryDark.g, primaryDark.b);
+          doc.rect(margin + 5, yPosition, contentWidth - 10, 10, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(8);
+          doc.setFont('helvetica', 'bold');
+          
+          tableHeaders.forEach((header, i) => {
+            const cleanHeader = stripEmojis(header);
+            const truncated = cleanHeader.length > 25 ? cleanHeader.substring(0, 22) + '...' : cleanHeader;
+            doc.text(truncated, margin + 8 + i * colWidth, yPosition + 7);
+          });
+          yPosition += 10;
+        }
+        
+        // Table rows
+        tableRows.forEach((row, rowIndex) => {
+          checkPageBreak(12);
+          doc.setFillColor(rowIndex % 2 === 0 ? 255 : lightGray.r, rowIndex % 2 === 0 ? 255 : lightGray.g, rowIndex % 2 === 0 ? 255 : lightGray.b);
+          doc.rect(margin + 5, yPosition, contentWidth - 10, 10, 'F');
+          
+          doc.setTextColor(darkGray.r, darkGray.g, darkGray.b);
+          doc.setFontSize(8);
+          doc.setFont('helvetica', 'normal');
+          
+          row.forEach((cell, i) => {
+            const cleanCell = stripEmojis(cell);
+            const truncated = cleanCell.length > 30 ? cleanCell.substring(0, 27) + '...' : cleanCell;
+            doc.text(truncated, margin + 8 + i * colWidth, yPosition + 7);
+          });
+          yPosition += 10;
+        });
+        
+        yPosition += 5;
+        tableHeaders = [];
+        tableRows = [];
+        inTable = false;
+      };
+      
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
         const trimmedLine = line.trim();
+        
         if (!trimmedLine) {
+          if (inTable) renderTable();
           yPosition += 3;
           continue;
+        }
+        
+        // Detect markdown table
+        if (trimmedLine.startsWith('|') && trimmedLine.endsWith('|')) {
+          const cells = trimmedLine.split('|').filter(c => c.trim()).map(c => c.trim());
+          
+          // Check if this is a separator row (|---|---|)
+          if (cells.every(c => /^[-:]+$/.test(c))) {
+            continue; // Skip separator
+          }
+          
+          if (!inTable) {
+            inTable = true;
+            tableHeaders = cells;
+          } else {
+            tableRows.push(cells);
+          }
+          continue;
+        } else if (inTable) {
+          renderTable();
         }
         
         // Day headers (## Day X)
@@ -206,13 +285,11 @@ const Itinerary = () => {
           
           const dayMatch = trimmedLine.match(/Day (\d+)/);
           const dayNumber = dayMatch ? parseInt(dayMatch[1]) : 1;
-          const dayTitle = trimmedLine.replace('## ', '');
+          const dayTitle = stripEmojis(trimmedLine.replace('## ', ''));
           
           // Cycle colors: teal, pink, amber
           const colors = [primary, accent, gold];
-          const darkColors = [primaryDark, accentDark, goldDark];
           currentDayColor = colors[(dayNumber - 1) % 3];
-          const currentDarkColor = darkColors[(dayNumber - 1) % 3];
           
           // Day header bar
           doc.setFillColor(currentDayColor.r, currentDayColor.g, currentDayColor.b);
@@ -225,39 +302,23 @@ const Itinerary = () => {
           
           yPosition += 22;
         }
-        // Time of day headers (### Morning, etc)
+        // Section headers (### like "Estimated Total Costs", "Travel Tips")
         else if (trimmedLine.startsWith('### ')) {
           checkPageBreak(18);
-          yPosition += 5;
+          yPosition += 8;
           
-          const timeText = trimmedLine.replace('### ', '');
-          const isMorning = timeText.toLowerCase().includes('morning');
-          const isAfternoon = timeText.toLowerCase().includes('afternoon');
+          const sectionTitle = stripEmojis(trimmedLine.replace('### ', '').replace(/\*/g, ''));
           
-          // Time-based colors
-          let bgColor, textColor;
-          if (isMorning) {
-            bgColor = goldLight;
-            textColor = goldDark;
-          } else if (isAfternoon) {
-            bgColor = primaryLight;
-            textColor = primaryDark;
-          } else {
-            bgColor = accentLight;
-            textColor = accentDark;
-          }
+          // Section header with accent color
+          doc.setFillColor(accentLight.r, accentLight.g, accentLight.b);
+          doc.roundedRect(margin, yPosition, contentWidth, 14, 3, 3, 'F');
           
-          // Time badge
-          doc.setFillColor(bgColor.r, bgColor.g, bgColor.b);
-          const pillWidth = doc.getTextWidth(timeText) + 15;
-          doc.roundedRect(margin + 5, yPosition, pillWidth, 12, 4, 4, 'F');
-          
-          doc.setTextColor(textColor.r, textColor.g, textColor.b);
-          doc.setFontSize(10);
+          doc.setTextColor(accentDark.r, accentDark.g, accentDark.b);
+          doc.setFontSize(11);
           doc.setFont('helvetica', 'bold');
-          doc.text(timeText, margin + 10, yPosition + 8);
+          doc.text(sectionTitle, margin + 8, yPosition + 10);
           
-          yPosition += 16;
+          yPosition += 20;
         }
         // Bold text with time (e.g., **8:00 AM - Activity**)
         else if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
@@ -265,21 +326,25 @@ const Itinerary = () => {
           doc.setTextColor(currentDayColor.r, currentDayColor.g, currentDayColor.b);
           doc.setFontSize(10);
           doc.setFont('helvetica', 'bold');
-          const cleanText = trimmedLine.replace(/\*\*/g, '');
+          const cleanText = stripEmojis(trimmedLine.replace(/\*\*/g, ''));
           const splitText = doc.splitTextToSize(cleanText, contentWidth - 15);
           doc.text(splitText, margin + 10, yPosition);
           yPosition += splitText.length * 5 + 4;
         }
-        // Regular paragraphs - activity descriptions
-        else if (!trimmedLine.startsWith('#') && !trimmedLine.startsWith('-') && !trimmedLine.startsWith('*')) {
+        // Numbered list items (1. 2. 3. etc)
+        else if (/^\d+\.\s/.test(trimmedLine)) {
           checkPageBreak(14);
+          
+          doc.setFillColor(currentDayColor.r, currentDayColor.g, currentDayColor.b);
+          doc.circle(margin + 14, yPosition - 1, 1.5, 'F');
+          
           doc.setTextColor(darkGray.r, darkGray.g, darkGray.b);
           doc.setFontSize(9);
           doc.setFont('helvetica', 'normal');
-          const cleanText = trimmedLine.replace(/\*\*/g, '').replace(/\*/g, '');
-          const splitText = doc.splitTextToSize(cleanText, contentWidth - 20);
-          doc.text(splitText, margin + 10, yPosition);
-          yPosition += splitText.length * 5 + 3;
+          const cleanText = stripEmojis(trimmedLine.replace(/\*\*/g, '').replace(/\*/g, ''));
+          const splitText = doc.splitTextToSize(cleanText, contentWidth - 25);
+          doc.text(splitText, margin + 20, yPosition);
+          yPosition += splitText.length * 5 + 4;
         }
         // List items
         else if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ')) {
@@ -292,12 +357,26 @@ const Itinerary = () => {
           doc.setTextColor(darkGray.r, darkGray.g, darkGray.b);
           doc.setFontSize(9);
           doc.setFont('helvetica', 'normal');
-          const cleanText = trimmedLine.replace(/^[-*]\s*/, '').replace(/\*\*/g, '').replace(/\*/g, '');
+          const cleanText = stripEmojis(trimmedLine.replace(/^[-*]\s*/, '').replace(/\*\*/g, '').replace(/\*/g, ''));
           const splitText = doc.splitTextToSize(cleanText, contentWidth - 25);
           doc.text(splitText, margin + 20, yPosition);
           yPosition += splitText.length * 5 + 4;
         }
+        // Regular paragraphs
+        else if (!trimmedLine.startsWith('#')) {
+          checkPageBreak(14);
+          doc.setTextColor(darkGray.r, darkGray.g, darkGray.b);
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'normal');
+          const cleanText = stripEmojis(trimmedLine.replace(/\*\*/g, '').replace(/\*/g, ''));
+          const splitText = doc.splitTextToSize(cleanText, contentWidth - 20);
+          doc.text(splitText, margin + 10, yPosition);
+          yPosition += splitText.length * 5 + 3;
+        }
       }
+      
+      // Render any remaining table
+      if (inTable) renderTable();
       
       // ==================== BUDGET BREAKDOWN ====================
       checkPageBreak(90);
