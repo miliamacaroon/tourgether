@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import jsPDF from 'jspdf';
 
 interface StoredTripData {
@@ -665,7 +666,40 @@ const Itinerary = () => {
                   hr: () => (
                     <hr className="my-8 border-primary/30 ml-4 md:ml-18" />
                   ),
+                  table: ({ children }) => (
+                    <div className="my-6 ml-4 md:ml-18 overflow-x-auto">
+                      <table className="w-full border-collapse rounded-xl overflow-hidden shadow-lg border-2 border-primary/20">
+                        {children}
+                      </table>
+                    </div>
+                  ),
+                  thead: ({ children }) => (
+                    <thead className="bg-primary text-primary-foreground">
+                      {children}
+                    </thead>
+                  ),
+                  tbody: ({ children }) => (
+                    <tbody className="bg-card">
+                      {children}
+                    </tbody>
+                  ),
+                  tr: ({ children }) => (
+                    <tr className="border-b border-border last:border-b-0 hover:bg-accent/50 transition-colors">
+                      {children}
+                    </tr>
+                  ),
+                  th: ({ children }) => (
+                    <th className="px-4 py-3 text-left font-semibold text-sm">
+                      {children}
+                    </th>
+                  ),
+                  td: ({ children }) => (
+                    <td className="px-4 py-3 text-sm text-foreground">
+                      {children}
+                    </td>
+                  ),
                 }}
+                remarkPlugins={[remarkGfm]}
               >
                 {itinerary}
               </ReactMarkdown>
