@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// RegionMapper - Ported from Python region_mapper.py
+// RegionMapper - Ported from Python region_mapper.py (matching your YOLOv11 model classes)
 const REGION_TO_PREFERENCES: Record<string, {
   primary_type: string;
   secondary_types: string[];
@@ -129,30 +129,30 @@ const REGION_TO_PREFERENCES: Record<string, {
   }
 };
 
+// Valid region keys (matching your YOLOv11 model's class labels)
+const VALID_REGIONS = Object.keys(REGION_TO_PREFERENCES);
+
 // Region detection prompt for vision model
-const REGION_DETECTION_PROMPT = `You are a travel region classification expert. Analyze this image and classify it into ONE of these regions:
+const REGION_DETECTION_PROMPT = `You are a travel region classification expert analyzing images like a YOLOv11 model would.
 
-- north_america (USA, Canada, Mexico landmarks)
-- europe (European cities, landmarks, architecture)
-- east_asia (Japan, Korea, China, Taiwan landmarks)
-- south_southeast_asia (Thailand, Vietnam, Indonesia, Singapore, Philippines, etc.)
-- oceania (Australia, New Zealand landmarks)
-- middle_east (UAE, Turkey, Israel, Jordan, Egypt landmarks)
-- africa (African landscapes, cities, wildlife)
-- caribbean_central_america (Caribbean islands, Central American countries)
-- south_america (South American landmarks, cities)
+Analyze this image and classify it into ONE of these exact region labels:
+- north_america
+- europe
+- east_asia
+- south_southeast_asia
+- oceania
+- middle_east
+- africa
+- caribbean_central_america
+- south_america
 
-Also try to identify the specific landmark or location if recognizable.
+Also identify the specific landmark or location if recognizable.
 
-Respond in JSON format:
-{
-  "detected": true/false,
-  "region": "region_key",
-  "confidence": 0.0-1.0,
-  "landmark_name": "Name if identifiable or null",
-  "destination_city": "City if identifiable or null",
-  "description": "Brief description of what you see"
-}`;
+You MUST respond with ONLY a valid JSON object, no other text:
+{"detected":true,"region":"europe","confidence":0.95,"landmark_name":"Eiffel Tower","destination_city":"Paris","description":"The iconic Eiffel Tower in Paris, France"}
+
+If you cannot identify the region, respond:
+{"detected":false,"region":null,"confidence":0,"landmark_name":null,"destination_city":null,"description":"Unable to identify region from image"}`;
 
 function getRegionInfo(region: string) {
   const mapping = REGION_TO_PREFERENCES[region];
@@ -178,14 +178,27 @@ function getRegionInfo(region: string) {
   };
 }
 
-function getEnrichedQueryContext(region: string): string {
-  const mapping = REGION_TO_PREFERENCES[region];
-  if (!mapping) return "";
-  
-  const context = `Region: ${region.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}. `;
-  const primaryType = mapping.primary_type.replace(/_/g, " ");
-  const secondaryTypes = mapping.secondary_types.join(", ");
-  return context + `Focus on ${primaryType} and consider ${secondaryTypes}.`;
+function extractJsonFromText(text: string): object | null {
+  // Try to find JSON object in the text
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    try {
+      return JSON.parse(jsonMatch[0]);
+    } catch {
+      // Try to fix common issues
+      let cleaned = jsonMatch[0]
+        .replace(/[\n\r]/g, ' ')
+        .replace(/,\s*}/g, '}')
+        .replace(/,\s*]/g, ']');
+      
+      try {
+        return JSON.parse(cleaned);
+      } catch {
+        console.error("Could not parse cleaned JSON:", cleaned);
+      }
+    }
+  }
+  return null;
 }
 
 serve(async (req) => {
@@ -212,7 +225,7 @@ serve(async (req) => {
       );
     }
 
-    console.log("Detecting region from image using vision AI...");
+    console.log("Detecting region from image using vision AI (replicating YOLOv11 model behavior)...");
 
     // Prepare image content for vision model
     const imageContent = imageBase64 
@@ -227,28 +240,24 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
+        model: "google/gemini-2.5-flash",
         messages: [
-          {
-            role: "system",
-            content: REGION_DETECTION_PROMPT
-          },
           {
             role: "user",
             content: [
-              { type: "text", text: "Analyze this travel image and detect the region:" },
+              { type: "text", text: REGION_DETECTION_PROMPT },
               imageContent
             ]
           }
         ],
-        response_format: { type: "json_object" },
-        max_tokens: 500,
+        max_tokens: 300,
+        temperature: 0.1,
       }),
     });
 
     if (!visionResponse.ok) {
       const errorText = await visionResponse.text();
-      console.error("Vision API error:", errorText);
+      console.error("Vision API error:", visionResponse.status, errorText);
       
       if (visionResponse.status === 429) {
         return new Response(
@@ -269,35 +278,69 @@ serve(async (req) => {
     const visionData = await visionResponse.json();
     const content = visionData.choices?.[0]?.message?.content;
 
+    console.log("Raw vision response:", content);
+
     if (!content) {
       throw new Error("No response from vision model");
     }
 
-    let detection;
-    try {
-      detection = JSON.parse(content);
-    } catch {
-      console.error("Failed to parse vision response:", content);
+    // Extract and parse JSON from response
+    let detection = extractJsonFromText(content);
+    
+    if (!detection) {
+      console.error("Failed to extract JSON from vision response:", content);
       detection = {
         detected: false,
-        description: "Could not parse the region detection result",
+        region: null,
+        confidence: 0,
+        landmark_name: null,
+        destination_city: null,
+        description: "Could not parse the region detection result"
       };
     }
 
-    console.log("Detection result:", detection);
+    // Validate and normalize the region
+    const detectionObj = detection as {
+      detected?: boolean;
+      region?: string;
+      confidence?: number;
+      landmark_name?: string;
+      destination_city?: string;
+      description?: string;
+    };
+
+    // Ensure region is valid
+    let validRegion = detectionObj.region?.toLowerCase().replace(/\s+/g, '_') || null;
+    if (validRegion && !VALID_REGIONS.includes(validRegion)) {
+      // Try to match partial region names
+      const matched = VALID_REGIONS.find(r => 
+        validRegion!.includes(r) || r.includes(validRegion!)
+      );
+      validRegion = matched || null;
+    }
+
+    const normalizedDetection = {
+      detected: detectionObj.detected ?? false,
+      region: validRegion,
+      confidence: Math.min(1, Math.max(0, detectionObj.confidence ?? 0)),
+      landmark_name: detectionObj.landmark_name || null,
+      destination_city: detectionObj.destination_city || null,
+      description: detectionObj.description || ""
+    };
+
+    console.log("Normalized detection result:", normalizedDetection);
 
     // Apply RegionMapper logic
-    const regionKey = detection.region || "europe"; // Default to europe if not detected
+    const regionKey = normalizedDetection.region || "europe";
     const regionInfo = getRegionInfo(regionKey);
-    const queryContext = getEnrichedQueryContext(regionKey);
 
     // Get matching attractions from database based on region's suggested destinations
     let matchingAttractions: unknown[] = [];
     let nearbyRestaurants: unknown[] = [];
 
-    if (detection.detected) {
-      const destinationsToSearch = detection.destination_city 
-        ? [detection.destination_city, ...regionInfo.destinations.slice(0, 3)]
+    if (normalizedDetection.detected && normalizedDetection.region) {
+      const destinationsToSearch = normalizedDetection.destination_city 
+        ? [normalizedDetection.destination_city, ...regionInfo.destinations.slice(0, 3)]
         : regionInfo.destinations.slice(0, 5);
 
       // Build OR query for multiple destinations
@@ -315,6 +358,7 @@ serve(async (req) => {
 
       if (!attrError && attractions) {
         matchingAttractions = attractions;
+        console.log(`Found ${attractions.length} attractions for region ${normalizedDetection.region}`);
       }
 
       // Search restaurants in the same destinations
@@ -334,17 +378,9 @@ serve(async (req) => {
     const response = {
       success: true,
       // Vision detection results (like YOLO output)
-      detection: {
-        detected: detection.detected || false,
-        region: detection.region || null,
-        confidence: detection.confidence || 0.0,
-        landmark_name: detection.landmark_name || null,
-        destination_city: detection.destination_city || null,
-        description: detection.description || ""
-      },
+      detection: normalizedDetection,
       // RegionMapper output
       region_info: regionInfo,
-      query_context: queryContext,
       // Suggested trip preferences (from RegionMapper)
       suggestions: {
         primary_trip_type: regionInfo.trip_types.primary,
@@ -354,7 +390,7 @@ serve(async (req) => {
         currency: regionInfo.budget_info.currency,
         best_seasons: regionInfo.season_info,
         // If we detected a specific city, put it first
-        auto_destination: detection.destination_city || regionInfo.destinations[0] || null
+        auto_destination: normalizedDetection.destination_city || regionInfo.destinations[0] || null
       },
       // Retrieved data from database (like hybrid_retrieval output)
       retrieved: {
