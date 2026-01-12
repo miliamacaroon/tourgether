@@ -567,27 +567,63 @@ const Itinerary = () => {
             <CardContent className="p-6 md:p-10">
               <ReactMarkdown
                 components={{
-                  h2: ({ children }) => (
-                    <div className="mt-10 first:mt-0 mb-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary via-primary to-accent flex items-center justify-center text-primary-foreground font-bold text-xl shrink-0 shadow-xl shadow-primary/30 ring-4 ring-primary/20">
-                          {String(children).match(/Day (\d+)/)?.[1] || '📍'}
-                        </div>
-                        <div className="flex-1">
-                          <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-primary via-accent-foreground to-primary bg-clip-text text-transparent">{children}</h2>
-                          <div className="h-1.5 w-24 bg-gradient-to-r from-primary via-accent to-primary/40 rounded-full mt-2"></div>
+                  h2: ({ children }) => {
+                    const dayNum = String(children).match(/Day (\d+)/)?.[1];
+                    const isEven = dayNum ? parseInt(dayNum) % 2 === 0 : false;
+                    return (
+                      <div className="mt-10 first:mt-0 mb-6">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-primary-foreground font-bold text-xl shrink-0 shadow-xl ring-4 ${
+                            isEven 
+                              ? 'bg-gradient-to-br from-[hsl(175,80%,40%)] via-[hsl(180,70%,45%)] to-[hsl(185,75%,50%)] shadow-[hsl(175,80%,40%)]/30 ring-[hsl(175,80%,40%)]/20' 
+                              : 'bg-gradient-to-br from-primary via-primary to-accent shadow-primary/30 ring-primary/20'
+                          }`}>
+                            {dayNum || '📍'}
+                          </div>
+                          <div className="flex-1">
+                            <h2 className={`text-xl md:text-2xl font-bold bg-clip-text text-transparent ${
+                              isEven 
+                                ? 'bg-gradient-to-r from-[hsl(175,80%,40%)] via-[hsl(180,70%,35%)] to-[hsl(175,80%,40%)]' 
+                                : 'bg-gradient-to-r from-primary via-accent-foreground to-primary'
+                            }`}>{children}</h2>
+                            <div className={`h-1.5 w-24 rounded-full mt-2 ${
+                              isEven 
+                                ? 'bg-gradient-to-r from-[hsl(175,80%,40%)] via-[hsl(180,70%,50%)] to-[hsl(175,80%,40%)]/40' 
+                                : 'bg-gradient-to-r from-primary via-accent to-primary/40'
+                            }`}></div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ),
-                  h3: ({ children }) => (
-                    <div className="mt-6 mb-4 ml-4 md:ml-18">
-                      <div className="inline-flex items-center gap-3 bg-gradient-to-r from-primary/20 via-accent/15 to-primary/10 px-5 py-2.5 rounded-full border border-primary/30 shadow-md shadow-primary/10">
-                        <span className="w-3 h-3 rounded-full bg-gradient-to-br from-primary to-accent animate-pulse"></span>
-                        <span className="text-sm font-bold text-primary tracking-wide">{children}</span>
+                    );
+                  },
+                  h3: ({ children }) => {
+                    const timeText = String(children).toLowerCase();
+                    const isMorning = timeText.includes('morning');
+                    const isAfternoon = timeText.includes('afternoon');
+                    const isEvening = timeText.includes('evening') || timeText.includes('night');
+                    
+                    const getTimeStyles = () => {
+                      if (isMorning) return 'from-[hsl(45,90%,55%)]/25 via-[hsl(35,85%,50%)]/20 to-[hsl(45,90%,55%)]/15 border-[hsl(45,90%,55%)]/40 text-[hsl(35,85%,40%)]';
+                      if (isAfternoon) return 'from-[hsl(175,80%,40%)]/20 via-[hsl(180,70%,45%)]/15 to-[hsl(175,80%,40%)]/10 border-[hsl(175,80%,40%)]/30 text-[hsl(175,80%,35%)]';
+                      if (isEvening) return 'from-primary/20 via-accent/15 to-primary/10 border-primary/30 text-primary';
+                      return 'from-primary/20 via-accent/15 to-primary/10 border-primary/30 text-primary';
+                    };
+                    
+                    const getDotColor = () => {
+                      if (isMorning) return 'from-[hsl(45,90%,55%)] to-[hsl(35,85%,50%)]';
+                      if (isAfternoon) return 'from-[hsl(175,80%,40%)] to-[hsl(180,70%,45%)]';
+                      return 'from-primary to-accent';
+                    };
+                    
+                    return (
+                      <div className="mt-6 mb-4 ml-4 md:ml-18">
+                        <div className={`inline-flex items-center gap-3 bg-gradient-to-r ${getTimeStyles()} px-5 py-2.5 rounded-full border shadow-md shadow-primary/10`}>
+                          <span className={`w-3 h-3 rounded-full bg-gradient-to-br ${getDotColor()} animate-pulse`}></span>
+                          <span className="text-sm font-bold tracking-wide">{children}</span>
+                        </div>
                       </div>
-                    </div>
-                  ),
+                    );
+                  },
                   p: ({ children }) => (
                     <p className="text-foreground/85 leading-relaxed mb-4 ml-4 md:ml-18 text-sm md:text-base">{children}</p>
                   ),
@@ -597,20 +633,28 @@ const Itinerary = () => {
                   ol: ({ children }) => (
                     <ol className="space-y-3 mb-6 ml-4 md:ml-18 list-none">{children}</ol>
                   ),
-                  li: ({ children }) => (
-                    <li className="flex items-start gap-3 text-foreground/85 text-sm md:text-base bg-gradient-to-r from-primary/10 via-accent/5 to-transparent p-4 rounded-xl border-l-4 border-primary hover:border-accent hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 group">
-                      <span className="text-primary text-lg group-hover:text-accent transition-colors">▸</span>
-                      <span className="flex-1">{children}</span>
-                    </li>
-                  ),
+                  li: ({ children }) => {
+                    const colors = [
+                      { bg: 'from-primary/10 via-accent/5', border: 'border-primary hover:border-accent', bullet: 'text-primary group-hover:text-accent' },
+                      { bg: 'from-[hsl(175,80%,40%)]/10 via-[hsl(180,70%,45%)]/5', border: 'border-[hsl(175,80%,40%)] hover:border-[hsl(180,70%,45%)]', bullet: 'text-[hsl(175,80%,40%)] group-hover:text-[hsl(180,70%,45%)]' },
+                      { bg: 'from-[hsl(45,90%,55%)]/10 via-[hsl(35,85%,50%)]/5', border: 'border-[hsl(45,90%,55%)] hover:border-[hsl(35,85%,50%)]', bullet: 'text-[hsl(45,90%,50%)] group-hover:text-[hsl(35,85%,45%)]' },
+                    ];
+                    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                    return (
+                      <li className={`flex items-start gap-3 text-foreground/85 text-sm md:text-base bg-gradient-to-r ${randomColor.bg} to-transparent p-4 rounded-xl border-l-4 ${randomColor.border} hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 group`}>
+                        <span className={`text-lg ${randomColor.bullet} transition-colors`}>▸</span>
+                        <span className="flex-1">{children}</span>
+                      </li>
+                    );
+                  },
                   strong: ({ children }) => (
-                    <strong className="font-bold bg-gradient-to-r from-primary to-accent-foreground bg-clip-text text-transparent">{children}</strong>
+                    <strong className="font-bold bg-gradient-to-r from-primary via-[hsl(175,80%,40%)] to-accent-foreground bg-clip-text text-transparent">{children}</strong>
                   ),
                   em: ({ children }) => (
-                    <span className="text-accent-foreground font-medium italic">{children}</span>
+                    <span className="text-[hsl(175,80%,35%)] font-medium italic">{children}</span>
                   ),
                   hr: () => (
-                    <hr className="my-8 border-primary/30 ml-4 md:ml-18" />
+                    <hr className="my-8 border-gradient-to-r from-primary/30 via-[hsl(175,80%,40%)]/30 to-primary/30 ml-4 md:ml-18" />
                   ),
                 }}
               >
