@@ -524,45 +524,28 @@ const Itinerary = () => {
                 components={{
                   h2: ({ children }) => {
                     const dayNum = String(children).match(/Day (\d+)/)?.[1];
-                    const dayNumber = dayNum ? parseInt(dayNum) : 1;
-                    // Cycle through 3 colors: primary (pink), teal, amber
-                    const colorCycle = dayNumber % 3;
-                    const bgColorClass = colorCycle === 1 ? 'bg-primary' : colorCycle === 2 ? 'bg-teal-500' : 'bg-amber-500';
-                    const shadowClass = colorCycle === 1 ? 'shadow-primary/30 ring-primary/20' : colorCycle === 2 ? 'shadow-teal-500/30 ring-teal-500/20' : 'shadow-amber-500/30 ring-amber-500/20';
-                    const textClass = colorCycle === 1 ? 'text-primary' : colorCycle === 2 ? 'text-teal-600' : 'text-amber-600';
-                    const barClass = colorCycle === 1 ? 'bg-primary/40' : colorCycle === 2 ? 'bg-teal-500/40' : 'bg-amber-500/40';
                     return (
                       <div className="mt-10 first:mt-0 mb-6">
                         <div className="flex items-center gap-4">
-                          <div className={`w-14 h-14 rounded-2xl ${bgColorClass} flex items-center justify-center text-white font-bold text-xl shrink-0 shadow-xl ${shadowClass} ring-4`}>
+                          <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-xl shrink-0 shadow-xl shadow-primary/30 ring-4 ring-primary/20">
                             {dayNum || '📍'}
                           </div>
                           <div className="flex-1">
-                            <h2 className={`text-xl md:text-2xl font-bold ${textClass}`}>{children}</h2>
-                            <div className={`h-1.5 w-24 ${barClass} rounded-full mt-2`}></div>
+                            <h2 className="text-xl md:text-2xl font-bold text-primary">{children}</h2>
+                            <div className="h-1.5 w-24 bg-primary/40 rounded-full mt-2"></div>
                           </div>
                         </div>
                       </div>
                     );
                   },
-                  h3: ({ children }) => {
-                    const timeText = String(children).toLowerCase();
-                    const isMorning = timeText.includes('morning');
-                    const isAfternoon = timeText.includes('afternoon');
-                    // Morning = amber, Afternoon = teal, Evening = pink
-                    const bgClass = isMorning ? 'bg-amber-50' : isAfternoon ? 'bg-teal-50' : 'bg-accent';
-                    const borderClass = isMorning ? 'border-amber-300' : isAfternoon ? 'border-teal-300' : 'border-primary/20';
-                    const dotClass = isMorning ? 'bg-amber-500' : isAfternoon ? 'bg-teal-500' : 'bg-primary';
-                    const textColorClass = isMorning ? 'text-amber-700' : isAfternoon ? 'text-teal-700' : 'text-accent-foreground';
-                    return (
-                      <div className="mt-6 mb-4 ml-4 md:ml-18">
-                        <div className={`inline-flex items-center gap-3 ${bgClass} px-5 py-2.5 rounded-full border ${borderClass} shadow-md`}>
-                          <span className={`w-3 h-3 rounded-full ${dotClass} animate-pulse`}></span>
-                          <span className={`text-sm font-bold ${textColorClass} tracking-wide`}>{children}</span>
-                        </div>
+                  h3: ({ children }) => (
+                    <div className="mt-6 mb-4 ml-4 md:ml-18">
+                      <div className="inline-flex items-center gap-3 bg-accent px-5 py-2.5 rounded-full border border-primary/20 shadow-md">
+                        <span className="w-3 h-3 rounded-full bg-primary animate-pulse"></span>
+                        <span className="text-sm font-bold text-primary tracking-wide">{children}</span>
                       </div>
-                    );
-                  },
+                    </div>
+                  ),
                   p: ({ children }) => (
                     <p className="text-foreground/85 leading-relaxed mb-4 ml-4 md:ml-18 text-sm md:text-base">{children}</p>
                   ),
@@ -573,16 +556,16 @@ const Itinerary = () => {
                     <ol className="space-y-3 mb-6 ml-4 md:ml-18 list-none">{children}</ol>
                   ),
                   li: ({ children }) => (
-                    <li className="flex items-start gap-3 text-foreground/85 text-sm md:text-base bg-gradient-to-r from-accent/50 to-teal-50/30 p-4 rounded-xl border-l-4 border-primary hover:border-teal-500 hover:shadow-lg hover:shadow-teal-500/10 transition-all duration-300 group">
-                      <span className="text-teal-600 text-lg group-hover:text-primary transition-colors">▸</span>
+                    <li className="flex items-start gap-3 text-foreground/85 text-sm md:text-base bg-accent/50 p-4 rounded-xl border-l-4 border-primary hover:border-accent-foreground hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 group">
+                      <span className="text-primary text-lg group-hover:text-accent-foreground transition-colors">▸</span>
                       <span className="flex-1">{children}</span>
                     </li>
                   ),
                   strong: ({ children }) => (
-                    <strong className="font-bold text-teal-600">{children}</strong>
+                    <strong className="font-bold text-primary">{children}</strong>
                   ),
                   em: ({ children }) => (
-                    <span className="text-amber-600 font-medium italic">{children}</span>
+                    <span className="text-accent-foreground font-medium italic">{children}</span>
                   ),
                   hr: () => (
                     <hr className="my-8 border-primary/30 ml-4 md:ml-18" />
