@@ -141,14 +141,19 @@ const Itinerary = () => {
       
       yPosition += 18;
       
+      // Helper to format text: replace underscores and capitalize each word
+      const toTitleCase = (str: string) => {
+        return str.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+      };
+
       const tripDetails = [
-        { label: 'Duration', value: `${tripData.daysCount} days` },
+        { label: 'Duration', value: `${tripData.daysCount} Days` },
         { label: 'Dates', value: `${formatDate(tripData.startDate)} - ${formatDate(tripData.endDate)}` },
         { label: 'Budget', value: `${tripData.currency} ${tripData.budgetMin.toLocaleString()} - ${tripData.budgetMax.toLocaleString()}` },
-        { label: 'Travelers', value: `${tripData.travelers} ${tripData.travelers === 1 ? 'person' : 'people'}` },
-        { label: 'Focus', value: tripData.tripType.replace('_', ' ') },
-        { label: 'Pace', value: tripData.pace },
-        { label: 'Dining', value: tripData.diningStyle },
+        { label: 'Travelers', value: `${tripData.travelers} ${tripData.travelers === 1 ? 'Person' : 'People'}` },
+        { label: 'Focus', value: toTitleCase(tripData.tripType) },
+        { label: 'Pace', value: toTitleCase(tripData.pace) },
+        { label: 'Dining', value: toTitleCase(tripData.diningStyle) },
         { label: 'Generated', value: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) },
       ];
       
