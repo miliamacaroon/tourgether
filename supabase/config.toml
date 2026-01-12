@@ -2,3 +2,12 @@ project_id = "pfguglaaoezhwnnvavnq"
 
 [functions.generate-itinerary]
 verify_jwt = false
+
+[functions.import-travel-data]
+verify_jwt = false
+
+[functions.search-travel]
+verify_jwt = false
+
+[functions.identify-landmark]
+verify_jwt = false

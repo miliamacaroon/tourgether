@@ -14,13 +14,178 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      attractions: {
+        Row: {
+          attraction_url: string | null
+          categories: string[] | null
+          created_at: string | null
+          description: string | null
+          destination: string
+          embedding: string | null
+          general_location: string | null
+          id: number
+          latitude: number | null
+          longitude: number | null
+          name: string
+          number_of_reviews: number | null
+          picture: string | null
+          rating: number | null
+          review_tags: string[] | null
+          tripadvisor_url: string | null
+        }
+        Insert: {
+          attraction_url?: string | null
+          categories?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          destination: string
+          embedding?: string | null
+          general_location?: string | null
+          id: number
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          number_of_reviews?: number | null
+          picture?: string | null
+          rating?: number | null
+          review_tags?: string[] | null
+          tripadvisor_url?: string | null
+        }
+        Update: {
+          attraction_url?: string | null
+          categories?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          destination?: string
+          embedding?: string | null
+          general_location?: string | null
+          id?: number
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          number_of_reviews?: number | null
+          picture?: string | null
+          rating?: number | null
+          review_tags?: string[] | null
+          tripadvisor_url?: string | null
+        }
+        Relationships: []
+      }
+      restaurants: {
+        Row: {
+          created_at: string | null
+          cuisines: string[] | null
+          description: string | null
+          destination: string
+          dishes: string[] | null
+          embedding: string | null
+          features: string[] | null
+          general_location: string | null
+          hours: Json | null
+          id: number
+          latitude: number | null
+          longitude: number | null
+          meal_types: string[] | null
+          name: string
+          number_of_reviews: number | null
+          picture: string | null
+          rating: number | null
+          restaurant_url: string | null
+          review_tags: string[] | null
+          tripadvisor_url: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          cuisines?: string[] | null
+          description?: string | null
+          destination: string
+          dishes?: string[] | null
+          embedding?: string | null
+          features?: string[] | null
+          general_location?: string | null
+          hours?: Json | null
+          id: number
+          latitude?: number | null
+          longitude?: number | null
+          meal_types?: string[] | null
+          name: string
+          number_of_reviews?: number | null
+          picture?: string | null
+          rating?: number | null
+          restaurant_url?: string | null
+          review_tags?: string[] | null
+          tripadvisor_url?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          cuisines?: string[] | null
+          description?: string | null
+          destination?: string
+          dishes?: string[] | null
+          embedding?: string | null
+          features?: string[] | null
+          general_location?: string | null
+          hours?: Json | null
+          id?: number
+          latitude?: number | null
+          longitude?: number | null
+          meal_types?: string[] | null
+          name?: string
+          number_of_reviews?: number | null
+          picture?: string | null
+          rating?: number | null
+          restaurant_url?: string | null
+          review_tags?: string[] | null
+          tripadvisor_url?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      search_attractions: {
+        Args: {
+          filter_destination?: string
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+        }
+        Returns: {
+          categories: string[]
+          description: string
+          destination: string
+          id: number
+          latitude: number
+          longitude: number
+          name: string
+          picture: string
+          rating: number
+          similarity: number
+        }[]
+      }
+      search_restaurants: {
+        Args: {
+          filter_cuisines?: string[]
+          filter_destination?: string
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+        }
+        Returns: {
+          cuisines: string[]
+          description: string
+          destination: string
+          id: number
+          latitude: number
+          longitude: number
+          name: string
+          picture: string
+          rating: number
+          similarity: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
