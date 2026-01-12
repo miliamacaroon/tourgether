@@ -1,7 +1,13 @@
 import { MapPin, Search, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { POPULAR_DESTINATIONS } from '@/types/trip';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
 
 interface DestinationStepProps {
   destination: string;
@@ -35,25 +41,56 @@ export const DestinationStep = ({ destination, onDestinationChange }: Destinatio
         />
       </div>
 
-      {/* Popular Destinations */}
+      {/* Popular Destinations Carousel */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-muted-foreground">
           <Sparkles className="w-4 h-4" />
           <span className="text-sm font-medium">Popular destinations</span>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {POPULAR_DESTINATIONS.map((dest) => (
-            <Button
-              key={dest.name}
-              variant={destination === dest.name ? "default" : "outline"}
-              onClick={() => onDestinationChange(dest.name)}
-              className="h-auto py-4 px-4 flex flex-col items-center gap-2 rounded-xl transition-all hover:scale-105"
-            >
-              <span className="text-2xl">{dest.image}</span>
-              <span className="text-sm font-medium">{dest.name}</span>
-            </Button>
-          ))}
-        </div>
+        
+        <Carousel
+          opts={{
+            align: "start",
+            loop: true,
+          }}
+          className="w-full"
+        >
+          <CarouselContent className="-ml-2 md:-ml-4">
+            {POPULAR_DESTINATIONS.map((dest) => (
+              <CarouselItem key={dest.name} className="pl-2 md:pl-4 basis-1/2 sm:basis-1/3 md:basis-1/4">
+                <button
+                  onClick={() => onDestinationChange(dest.name)}
+                  className={`relative w-full aspect-[4/3] rounded-xl overflow-hidden group transition-all duration-300 ${
+                    destination === dest.name 
+                      ? 'ring-3 ring-primary ring-offset-2 ring-offset-background scale-[1.02]' 
+                      : 'hover:scale-105'
+                  }`}
+                >
+                  <img
+                    src={dest.image}
+                    alt={dest.name}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <p className="text-white font-semibold text-sm md:text-base drop-shadow-lg">
+                      {dest.name}
+                    </p>
+                  </div>
+                  {destination === dest.name && (
+                    <div className="absolute top-2 right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
+                </button>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="hidden sm:flex -left-4" />
+          <CarouselNext className="hidden sm:flex -right-4" />
+        </Carousel>
       </div>
     </div>
   );
