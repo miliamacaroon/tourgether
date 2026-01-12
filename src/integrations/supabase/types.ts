@@ -71,6 +71,42 @@ export type Database = {
         }
         Relationships: []
       }
+      predictions: {
+        Row: {
+          confidence: number
+          created_at: string
+          id: string
+          image_url: string | null
+          model_name: string | null
+          predicted_location: string
+          predicted_region: string | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          confidence?: number
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          model_name?: string | null
+          predicted_location: string
+          predicted_region?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          confidence?: number
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          model_name?: string | null
+          predicted_location?: string
+          predicted_region?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       restaurants: {
         Row: {
           created_at: string | null
@@ -145,6 +181,65 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_embedding_text: {
+        Args: {
+          attraction_row: Database["public"]["Tables"]["attractions"]["Row"]
+        }
+        Returns: string
+      }
+      generate_restaurant_text: {
+        Args: {
+          restaurant_row: Database["public"]["Tables"]["restaurants"]["Row"]
+        }
+        Returns: string
+      }
+      hybrid_search_attractions: {
+        Args: {
+          destination_filter?: string
+          match_count?: number
+          query_embedding: string
+          query_text: string
+          text_weight?: number
+          vector_weight?: number
+        }
+        Returns: {
+          categories: string[]
+          combined_score: number
+          description: string
+          destination: string
+          general_location: string
+          id: number
+          name: string
+          picture: string
+          rating: number
+          similarity_score: number
+          text_score: number
+        }[]
+      }
+      hybrid_search_restaurants: {
+        Args: {
+          cuisine_filter?: string[]
+          destination_filter?: string
+          match_count?: number
+          query_embedding: string
+          query_text: string
+          text_weight?: number
+          vector_weight?: number
+        }
+        Returns: {
+          combined_score: number
+          cuisines: string[]
+          description: string
+          destination: string
+          general_location: string
+          id: number
+          name: string
+          picture: string
+          rating: number
+          similarity_score: number
+          text_score: number
+        }[]
+      }
       search_attractions: {
         Args: {
           filter_destination?: string
