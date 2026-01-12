@@ -612,180 +612,99 @@ const Itinerary = () => {
       </section>
 
       {/* Itinerary Content */}
-      <section className="py-12 md:py-16">
+      <section className="py-12">
         <div className="container max-w-4xl mx-auto px-4">
-          {/* Section Header */}
-          <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">Your Day-by-Day Itinerary</h2>
-            <p className="text-muted-foreground">Curated experiences tailored to your preferences</p>
-          </div>
-
-          <div className="relative">
-            {/* Vertical Timeline Line */}
-            <div className="absolute left-6 md:left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary via-primary/50 to-transparent hidden md:block" />
-
-            <Card className="overflow-hidden shadow-lg border border-border bg-card">
-              <CardContent className="p-6 md:p-10">
-                <ReactMarkdown
-                  components={{
-                    h2: ({ children }) => {
-                      const dayNum = String(children).match(/Day (\d+)/)?.[1];
-                      const dayTitle = String(children).replace(/^Day \d+:?\s*/, '');
-                      return (
-                        <div className="mt-12 first:mt-0 mb-8">
-                          {/* Day Header */}
-                          <div className="flex items-start gap-4 md:gap-6">
-                            {/* Day Number Badge */}
-                            <div className="relative shrink-0">
-                              <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-primary flex flex-col items-center justify-center text-primary-foreground shadow-lg">
-                                <span className="text-[10px] font-medium uppercase tracking-wider opacity-80">Day</span>
-                                <span className="text-xl md:text-2xl font-bold leading-none">{dayNum || '1'}</span>
-                              </div>
-                            </div>
-                            
-                            {/* Day Title & Subtitle */}
-                            <div className="flex-1 pt-1">
-                              <h2 className="text-xl md:text-2xl font-bold text-foreground leading-tight">{dayTitle || children}</h2>
-                              <div className="flex items-center gap-2 mt-2">
-                                <div className="h-1 w-12 bg-primary rounded-full" />
-                                <div className="h-1 w-6 bg-primary/40 rounded-full" />
-                                <div className="h-1 w-3 bg-primary/20 rounded-full" />
-                              </div>
-                            </div>
+          <Card className="overflow-hidden shadow-xl border-2 border-primary/20 bg-gradient-to-br from-card via-card to-primary/5">
+            <CardContent className="p-6 md:p-10">
+              <ReactMarkdown
+                components={{
+                  h2: ({ children }) => {
+                    const dayNum = String(children).match(/Day (\d+)/)?.[1];
+                    return (
+                      <div className="mt-10 first:mt-0 mb-6">
+                        <div className="flex items-center gap-4">
+                          <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-xl shrink-0 shadow-xl shadow-primary/30 ring-4 ring-primary/20">
+                            {dayNum || '📍'}
+                          </div>
+                          <div className="flex-1">
+                            <h2 className="text-xl md:text-2xl font-bold text-primary">{children}</h2>
+                            <div className="h-1.5 w-24 bg-primary/40 rounded-full mt-2"></div>
                           </div>
                         </div>
-                      );
-                    },
-                    h3: ({ children }) => {
-                      const text = String(children);
-                      const isMorning = text.toLowerCase().includes('morning');
-                      const isAfternoon = text.toLowerCase().includes('afternoon');
-                      const isEvening = text.toLowerCase().includes('evening') || text.toLowerCase().includes('night');
-                      
-                      const icon = isMorning ? '🌅' : isAfternoon ? '☀️' : isEvening ? '🌙' : '📍';
-                      
-                      return (
-                        <div className="mt-8 mb-5 ml-0 md:ml-20">
-                          <div className="flex items-center gap-3">
-                            <span className="text-lg">{icon}</span>
-                            <h3 className="text-base md:text-lg font-semibold text-foreground">{children}</h3>
-                            <div className="flex-1 h-px bg-border" />
-                          </div>
-                        </div>
-                      );
-                    },
-                    h4: ({ children }) => (
-                      <div className="mt-5 mb-3 ml-0 md:ml-20">
-                        <h4 className="text-sm font-semibold text-primary flex items-center gap-2">
-                          <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                          {children}
-                        </h4>
                       </div>
-                    ),
-                    p: ({ children }) => (
-                      <p className="text-foreground/80 leading-relaxed mb-4 ml-0 md:ml-20 text-sm md:text-base">{children}</p>
-                    ),
-                    ul: ({ children }) => (
-                      <ul className="space-y-2 mb-6 ml-0 md:ml-20">{children}</ul>
-                    ),
-                    ol: ({ children }) => (
-                      <ol className="space-y-2 mb-6 ml-0 md:ml-20">{children}</ol>
-                    ),
-                    li: ({ children }) => {
-                      const text = String(children);
-                      const isTip = text.toLowerCase().includes('tip:') || text.toLowerCase().includes('insider');
-                      const isCost = text.toLowerCase().includes('cost:') || text.toLowerCase().includes('price:') || text.toLowerCase().includes('$') || text.toLowerCase().includes('€');
-                      
-                      if (isTip) {
-                        return (
-                          <li className="flex items-start gap-3 p-4 rounded-xl bg-accent/30 border border-primary/10">
-                            <span className="text-primary text-sm shrink-0 mt-0.5">💡</span>
-                            <span className="text-sm text-foreground/90">{children}</span>
-                          </li>
-                        );
-                      }
-                      
-                      if (isCost) {
-                        return (
-                          <li className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 border border-border">
-                            <span className="text-primary text-sm shrink-0 mt-0.5">💰</span>
-                            <span className="text-sm text-foreground/90 font-medium">{children}</span>
-                          </li>
-                        );
-                      }
-                      
-                      return (
-                        <li className="flex items-start gap-3 py-2 text-foreground/85 text-sm md:text-base group">
-                          <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0 group-hover:scale-125 transition-transform" />
-                          <span className="flex-1">{children}</span>
-                        </li>
-                      );
-                    },
-                    strong: ({ children }) => {
-                      const text = String(children);
-                      // Location/attraction names
-                      if (text.includes(':')) {
-                        return (
-                          <span className="block mt-4 mb-2">
-                            <span className="text-base md:text-lg font-semibold text-foreground">{children}</span>
-                          </span>
-                        );
-                      }
-                      return (
-                        <strong className="font-semibold text-foreground">{children}</strong>
-                      );
-                    },
-                    em: ({ children }) => (
-                      <em className="text-muted-foreground italic">{children}</em>
-                    ),
-                    blockquote: ({ children }) => (
-                      <blockquote className="ml-0 md:ml-20 my-4 pl-4 border-l-2 border-primary/40 text-muted-foreground italic">
-                        {children}
-                      </blockquote>
-                    ),
-                    hr: () => (
-                      <hr className="my-10 border-border ml-0 md:ml-20" />
-                    ),
-                    table: ({ children }) => (
-                      <div className="my-6 ml-0 md:ml-20 overflow-x-auto rounded-xl border border-border">
-                        <table className="w-full">
-                          {children}
-                        </table>
+                    );
+                  },
+                  h3: ({ children }) => (
+                    <div className="mt-6 mb-4 ml-4 md:ml-18">
+                      <div className="inline-flex items-center gap-3 bg-accent px-5 py-2.5 rounded-full border border-primary/20 shadow-md">
+                        <span className="w-3 h-3 rounded-full bg-primary animate-pulse"></span>
+                        <span className="text-sm font-bold text-accent-foreground tracking-wide">{children}</span>
                       </div>
-                    ),
-                    thead: ({ children }) => (
-                      <thead className="bg-primary text-primary-foreground">
+                    </div>
+                  ),
+                  p: ({ children }) => (
+                    <p className="text-foreground/85 leading-relaxed mb-4 ml-4 md:ml-18 text-sm md:text-base">{children}</p>
+                  ),
+                  ul: ({ children }) => (
+                    <ul className="space-y-3 mb-6 ml-4 md:ml-18 list-none">{children}</ul>
+                  ),
+                  ol: ({ children }) => (
+                    <ol className="space-y-3 mb-6 ml-4 md:ml-18 list-none">{children}</ol>
+                  ),
+                  li: ({ children }) => (
+                    <li className="flex items-start gap-3 text-foreground/85 text-sm md:text-base bg-accent/50 p-4 rounded-xl border-l-4 border-primary hover:border-accent-foreground hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 group">
+                      <span className="text-primary text-lg group-hover:text-accent-foreground transition-colors">▸</span>
+                      <span className="flex-1">{children}</span>
+                    </li>
+                  ),
+                  strong: ({ children }) => (
+                    <strong className="font-bold text-primary">{children}</strong>
+                  ),
+                  em: ({ children }) => (
+                    <span className="text-accent-foreground font-medium italic">{children}</span>
+                  ),
+                  hr: () => (
+                    <hr className="my-8 border-primary/30 ml-4 md:ml-18" />
+                  ),
+                  table: ({ children }) => (
+                    <div className="my-6 ml-4 md:ml-18 overflow-x-auto">
+                      <table className="w-full border-collapse rounded-xl overflow-hidden shadow-lg border-2 border-primary/20">
                         {children}
-                      </thead>
-                    ),
-                    tbody: ({ children }) => (
-                      <tbody className="bg-card divide-y divide-border">
-                        {children}
-                      </tbody>
-                    ),
-                    tr: ({ children }) => (
-                      <tr className="hover:bg-accent/30 transition-colors">
-                        {children}
-                      </tr>
-                    ),
-                    th: ({ children }) => (
-                      <th className="px-4 py-3 text-left font-semibold text-sm">
-                        {children}
-                      </th>
-                    ),
-                    td: ({ children }) => (
-                      <td className="px-4 py-3 text-sm text-foreground">
-                        {children}
-                      </td>
-                    ),
-                  }}
-                  remarkPlugins={[remarkGfm]}
-                >
-                  {itinerary}
-                </ReactMarkdown>
-              </CardContent>
-            </Card>
-          </div>
+                      </table>
+                    </div>
+                  ),
+                  thead: ({ children }) => (
+                    <thead className="bg-primary text-primary-foreground">
+                      {children}
+                    </thead>
+                  ),
+                  tbody: ({ children }) => (
+                    <tbody className="bg-card">
+                      {children}
+                    </tbody>
+                  ),
+                  tr: ({ children }) => (
+                    <tr className="border-b border-border last:border-b-0 hover:bg-accent/50 transition-colors">
+                      {children}
+                    </tr>
+                  ),
+                  th: ({ children }) => (
+                    <th className="px-4 py-3 text-left font-semibold text-sm">
+                      {children}
+                    </th>
+                  ),
+                  td: ({ children }) => (
+                    <td className="px-4 py-3 text-sm text-foreground">
+                      {children}
+                    </td>
+                  ),
+                }}
+                remarkPlugins={[remarkGfm]}
+              >
+                {itinerary}
+              </ReactMarkdown>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
