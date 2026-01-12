@@ -678,89 +678,106 @@ const Itinerary = () => {
       <section className="py-12 bg-gradient-to-b from-background via-primary/5 to-background">
         <div className="container max-w-4xl mx-auto px-4">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/20 to-accent/20 px-4 py-2 rounded-full mb-4">
+            <div className="inline-flex items-center gap-2 bg-accent px-4 py-2 rounded-full mb-4">
               <Wallet className="w-5 h-5 text-primary" />
               <span className="text-sm font-semibold text-primary">Estimated Budget</span>
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary via-accent-foreground to-primary bg-clip-text text-transparent">
+            <h2 className="text-2xl md:text-3xl font-bold text-primary">
               Budget Breakdown
             </h2>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-4 mb-6">
-            <Card className="overflow-hidden border-2 border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 group">
-              <div className="h-2 bg-gradient-to-r from-primary to-primary/60"></div>
-              <CardContent className="p-6 text-center">
-                <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <span className="text-2xl">🎭</span>
-                </div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Activities & Attractions</p>
-                <p className="text-3xl font-bold text-primary mb-2">40%</p>
-                <p className="text-sm text-muted-foreground">Entry fees, tours, experiences</p>
-                <div className="mt-4 pt-4 border-t border-border">
-                  <p className="text-lg font-semibold text-foreground">
-                    {tripData.currency} {Math.round((tripData.budgetMin + tripData.budgetMax) / 2 * 0.4).toLocaleString()}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Estimated amount</p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="overflow-hidden border-2 border-accent-foreground/20 hover:border-accent-foreground/40 transition-all duration-300 hover:shadow-xl hover:shadow-accent/10 group">
-              <div className="h-2 bg-gradient-to-r from-accent-foreground to-accent-foreground/60"></div>
-              <CardContent className="p-6 text-center">
-                <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-accent/30 to-accent/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <span className="text-2xl">🍽️</span>
-                </div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Dining & Food</p>
-                <p className="text-3xl font-bold text-accent-foreground mb-2">35%</p>
-                <p className="text-sm text-muted-foreground">Meals, snacks, beverages</p>
-                <div className="mt-4 pt-4 border-t border-border">
-                  <p className="text-lg font-semibold text-foreground">
-                    {tripData.currency} {Math.round((tripData.budgetMin + tripData.budgetMax) / 2 * 0.35).toLocaleString()}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Estimated amount</p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="overflow-hidden border-2 border-secondary/40 hover:border-secondary/60 transition-all duration-300 hover:shadow-xl hover:shadow-secondary/10 group">
-              <div className="h-2 bg-gradient-to-r from-secondary to-secondary/60"></div>
-              <CardContent className="p-6 text-center">
-                <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-secondary/20 to-secondary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <span className="text-2xl">🚗</span>
-                </div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Transport & Misc</p>
-                <p className="text-3xl font-bold text-secondary-foreground mb-2">25%</p>
-                <p className="text-sm text-muted-foreground">Local transport, tips, souvenirs</p>
-                <div className="mt-4 pt-4 border-t border-border">
-                  <p className="text-lg font-semibold text-foreground">
-                    {tripData.currency} {Math.round((tripData.budgetMin + tripData.budgetMax) / 2 * 0.25).toLocaleString()}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Estimated amount</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <Card className="border-2 border-primary/30 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
-                    <span className="text-xl">💰</span>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Budget Range</p>
-                    <p className="text-2xl font-bold bg-gradient-to-r from-primary to-accent-foreground bg-clip-text text-transparent">
-                      {tripData.currency} {tripData.budgetMin.toLocaleString()} - {tripData.budgetMax.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground bg-card/50 px-4 py-2 rounded-full">
-                  <Users className="w-4 h-4" />
-                  <span>For {tripData.travelers} {tripData.travelers === 1 ? 'traveler' : 'travelers'}</span>
-                </div>
+          <Card className="overflow-hidden border-2 border-primary/20 shadow-xl">
+            <div className="h-2 bg-primary"></div>
+            <CardContent className="p-0">
+              {/* Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-primary text-primary-foreground">
+                      <th className="px-6 py-4 text-left font-semibold">Category</th>
+                      <th className="px-6 py-4 text-center font-semibold">Allocation</th>
+                      <th className="px-6 py-4 text-right font-semibold">Estimated Cost</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b border-border hover:bg-accent/50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xl">🎭</span>
+                          <div>
+                            <p className="font-medium text-foreground">Activities & Attractions</p>
+                            <p className="text-xs text-muted-foreground">Entry fees, tours, experiences</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className="inline-flex items-center justify-center w-14 h-8 bg-primary/10 text-primary font-bold rounded-full">40%</span>
+                      </td>
+                      <td className="px-6 py-4 text-right font-semibold text-foreground">
+                        {tripData.currency} {Math.round((tripData.budgetMin + tripData.budgetMax) / 2 * 0.4).toLocaleString()}
+                      </td>
+                    </tr>
+                    <tr className="border-b border-border hover:bg-accent/50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xl">🍽️</span>
+                          <div>
+                            <p className="font-medium text-foreground">Dining & Food</p>
+                            <p className="text-xs text-muted-foreground">Meals, snacks, beverages</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className="inline-flex items-center justify-center w-14 h-8 bg-primary/10 text-primary font-bold rounded-full">35%</span>
+                      </td>
+                      <td className="px-6 py-4 text-right font-semibold text-foreground">
+                        {tripData.currency} {Math.round((tripData.budgetMin + tripData.budgetMax) / 2 * 0.35).toLocaleString()}
+                      </td>
+                    </tr>
+                    <tr className="border-b border-border hover:bg-accent/50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xl">🚗</span>
+                          <div>
+                            <p className="font-medium text-foreground">Transport & Misc</p>
+                            <p className="text-xs text-muted-foreground">Local transport, tips, souvenirs</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className="inline-flex items-center justify-center w-14 h-8 bg-primary/10 text-primary font-bold rounded-full">25%</span>
+                      </td>
+                      <td className="px-6 py-4 text-right font-semibold text-foreground">
+                        {tripData.currency} {Math.round((tripData.budgetMin + tripData.budgetMax) / 2 * 0.25).toLocaleString()}
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-accent">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xl">💰</span>
+                          <div>
+                            <p className="font-bold text-primary">Total Budget Range</p>
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                              <Users className="w-3 h-3" />
+                              For {tripData.travelers} {tripData.travelers === 1 ? 'traveler' : 'travelers'}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className="inline-flex items-center justify-center w-16 h-8 bg-primary text-primary-foreground font-bold rounded-full">100%</span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <p className="text-xl font-bold text-primary">
+                          {tripData.currency} {tripData.budgetMin.toLocaleString()} - {tripData.budgetMax.toLocaleString()}
+                        </p>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
               </div>
             </CardContent>
           </Card>
