@@ -70,32 +70,25 @@ const Itinerary = () => {
       const contentWidth = pageWidth - margin * 2;
       let yPosition = margin;
 
-      // Colors - Orchid theme with complementary colors
-      const primary = { r: 168, g: 85, b: 247 };      // Purple-500
-      const primaryDark = { r: 126, g: 34, b: 206 };  // Purple-700
-      const primaryLight = { r: 243, g: 232, b: 255 }; // Purple-50
-      const accent = { r: 236, g: 72, b: 153 };        // Pink-500
-      const teal = { r: 20, g: 184, b: 166 };          // Teal-500
-      const tealDark = { r: 15, g: 118, b: 110 };      // Teal-700
-      const tealLight = { r: 204, g: 251, b: 241 };    // Teal-50
-      const gold = { r: 234, g: 179, b: 8 };           // Amber/Gold
-      const goldDark = { r: 161, g: 98, b: 7 };        // Amber-700
-      const goldLight = { r: 254, g: 249, b: 195 };    // Amber-50
+      // Colors - Teal, Amber, Pink palette
+      const primary = { r: 20, g: 184, b: 166 };        // Teal-500
+      const primaryDark = { r: 15, g: 118, b: 110 };    // Teal-700
+      const primaryLight = { r: 204, g: 251, b: 241 };  // Teal-50
+      const accent = { r: 236, g: 72, b: 153 };         // Pink-500
+      const accentDark = { r: 190, g: 24, b: 93 };      // Pink-700
+      const accentLight = { r: 252, g: 231, b: 243 };   // Pink-50
+      const gold = { r: 234, g: 179, b: 8 };            // Amber-500
+      const goldDark = { r: 161, g: 98, b: 7 };         // Amber-700
+      const goldLight = { r: 254, g: 249, b: 195 };     // Amber-50
       const darkGray = { r: 30, g: 30, b: 46 };
       const mediumGray = { r: 100, g: 100, b: 120 };
-      const lightGray = { r: 248, g: 245, b: 255 };
+      const lightGray = { r: 248, g: 250, b: 252 };
 
       // Helper function to add new page if needed
       const checkPageBreak = (requiredHeight: number) => {
         if (yPosition + requiredHeight > pageHeight - 30) {
           doc.addPage();
-          yPosition = margin + 10;
-          // Add subtle header on new pages
-          doc.setFillColor(primaryLight.r, primaryLight.g, primaryLight.b);
-          doc.rect(0, 0, pageWidth, 15, 'F');
-          doc.setDrawColor(primary.r, primary.g, primary.b);
-          doc.setLineWidth(0.5);
-          doc.line(0, 15, pageWidth, 15);
+          yPosition = margin + 5;
           return true;
         }
         return false;
@@ -103,367 +96,280 @@ const Itinerary = () => {
 
       // ==================== COVER PAGE ====================
       
-      // Gradient header background
+      // Full page teal header
       doc.setFillColor(primary.r, primary.g, primary.b);
-      doc.rect(0, 0, pageWidth, 80, 'F');
+      doc.rect(0, 0, pageWidth, 100, 'F');
       
-      // Decorative diagonal stripe with teal
-      doc.setFillColor(teal.r, teal.g, teal.b);
-      doc.triangle(pageWidth - 60, 0, pageWidth, 0, pageWidth, 60, 'F');
+      // Decorative pink accent corner
+      doc.setFillColor(accent.r, accent.g, accent.b);
+      doc.triangle(pageWidth - 50, 0, pageWidth, 0, pageWidth, 50, 'F');
       
-      // Additional accent stripe
+      // Decorative amber accent
       doc.setFillColor(gold.r, gold.g, gold.b);
-      doc.triangle(0, 60, 0, 80, 40, 80, 'F');
+      doc.circle(0, 100, 30, 'F');
       
       // Brand name
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(36);
+      doc.setFontSize(32);
       doc.setFont('helvetica', 'bold');
-      doc.text('TourGether', pageWidth / 2, 35, { align: 'center' });
+      doc.text('TourGether', pageWidth / 2, 40, { align: 'center' });
       
-      // Tagline
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'normal');
-      doc.text('AI-Powered Travel Planning', pageWidth / 2, 50, { align: 'center' });
+      // Destination - Large centered
+      doc.setFontSize(28);
+      doc.setFont('helvetica', 'bold');
+      doc.text(tripData.destination.toUpperCase(), pageWidth / 2, 65, { align: 'center' });
       
-      // Destination badge
-      doc.setFillColor(255, 255, 255);
-      const destText = tripData.destination.toUpperCase();
-      const destWidth = Math.min(doc.getTextWidth(destText) * 1.5 + 30, contentWidth);
-      doc.roundedRect((pageWidth - destWidth) / 2, 58, destWidth, 16, 4, 4, 'F');
-      doc.setTextColor(primary.r, primary.g, primary.b);
+      // Subtitle
       doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text(destText, pageWidth / 2, 69, { align: 'center' });
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${tripData.daysCount}-Day Travel Itinerary`, pageWidth / 2, 85, { align: 'center' });
       
-      yPosition = 100;
+      yPosition = 120;
       
-      // Trip Details Card with teal accent
-      doc.setFillColor(255, 255, 255);
-      doc.setDrawColor(teal.r, teal.g, teal.b);
-      doc.setLineWidth(1);
-      doc.roundedRect(margin, yPosition, contentWidth, 70, 6, 6, 'FD');
-      
-      // Card header with teal
-      doc.setFillColor(tealLight.r, tealLight.g, tealLight.b);
-      doc.roundedRect(margin, yPosition, contentWidth, 20, 6, 6, 'F');
-      doc.rect(margin, yPosition + 14, contentWidth, 6, 'F');
-      
-      doc.setTextColor(tealDark.r, tealDark.g, tealDark.b);
+      // Trip Details Table
+      doc.setFillColor(primaryLight.r, primaryLight.g, primaryLight.b);
+      doc.roundedRect(margin, yPosition, contentWidth, 15, 3, 3, 'F');
+      doc.setTextColor(primaryDark.r, primaryDark.g, primaryDark.b);
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
-      doc.text('📅 TRIP DETAILS', margin + 10, yPosition + 13);
+      doc.text('Trip Details', margin + 5, yPosition + 10);
       
-      // Grid layout for details
-      const detailsY = yPosition + 32;
-      const colWidth = contentWidth / 2;
+      yPosition += 18;
       
-      const details = [
-        { icon: '📅', label: 'DATES', value: `${formatDate(tripData.startDate)} - ${formatDate(tripData.endDate)}` },
-        { icon: '⏱️', label: 'DURATION', value: `${tripData.daysCount} days` },
-        { icon: '💰', label: 'BUDGET', value: `${tripData.currency} ${tripData.budgetMin.toLocaleString()} - ${tripData.budgetMax.toLocaleString()}` },
-        { icon: '👥', label: 'TRAVELERS', value: `${tripData.travelers} ${tripData.travelers === 1 ? 'person' : 'people'}` },
+      const tripDetails = [
+        { label: 'Duration', value: `${tripData.daysCount} days` },
+        { label: 'Dates', value: `${formatDate(tripData.startDate)} - ${formatDate(tripData.endDate)}` },
+        { label: 'Budget', value: `${tripData.currency} ${tripData.budgetMin.toLocaleString()} - ${tripData.budgetMax.toLocaleString()}` },
+        { label: 'Travelers', value: `${tripData.travelers} ${tripData.travelers === 1 ? 'person' : 'people'}` },
+        { label: 'Focus', value: tripData.tripType.replace('_', ' ') },
+        { label: 'Pace', value: tripData.pace },
+        { label: 'Dining', value: tripData.diningStyle },
+        { label: 'Generated', value: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) },
       ];
       
-      details.forEach((detail, i) => {
-        const x = margin + 15 + (i % 2) * colWidth;
-        const y = detailsY + Math.floor(i / 2) * 18;
+      tripDetails.forEach((detail, i) => {
+        const rowY = yPosition + i * 12;
+        doc.setFillColor(i % 2 === 0 ? 255 : lightGray.r, i % 2 === 0 ? 255 : lightGray.g, i % 2 === 0 ? 255 : lightGray.b);
+        doc.rect(margin, rowY, contentWidth, 12, 'F');
         
         doc.setTextColor(mediumGray.r, mediumGray.g, mediumGray.b);
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`${detail.icon} ${detail.label}`, x, y);
-        
-        doc.setTextColor(darkGray.r, darkGray.g, darkGray.b);
         doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text(detail.value, x, y + 8);
-      });
-      
-      yPosition += 85;
-      
-      // Preferences Card with gold accent
-      doc.setFillColor(255, 255, 255);
-      doc.setDrawColor(gold.r, gold.g, gold.b);
-      doc.roundedRect(margin, yPosition, contentWidth, 45, 6, 6, 'FD');
-      
-      doc.setFillColor(goldLight.r, goldLight.g, goldLight.b);
-      doc.roundedRect(margin, yPosition, contentWidth, 20, 6, 6, 'F');
-      doc.rect(margin, yPosition + 14, contentWidth, 6, 'F');
-      
-      doc.setTextColor(goldDark.r, goldDark.g, goldDark.b);
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text('🎯 PREFERENCES', margin + 10, yPosition + 13);
-      
-      const prefsY = yPosition + 32;
-      const prefColWidth = contentWidth / 3;
-      
-      const prefs = [
-        { icon: '🎯', label: 'TYPE', value: tripData.tripType.replace('_', ' ').toUpperCase() },
-        { icon: '🚶', label: 'PACE', value: tripData.pace.toUpperCase() },
-        { icon: '🍽️', label: 'DINING', value: tripData.diningStyle.toUpperCase() },
-      ];
-      
-      prefs.forEach((pref, i) => {
-        const x = margin + 15 + i * prefColWidth;
-        
-        doc.setTextColor(mediumGray.r, mediumGray.g, mediumGray.b);
-        doc.setFontSize(8);
         doc.setFont('helvetica', 'normal');
-        doc.text(`${pref.icon} ${pref.label}`, x, prefsY);
+        doc.text(detail.label, margin + 5, rowY + 8);
         
         doc.setTextColor(darkGray.r, darkGray.g, darkGray.b);
-        doc.setFontSize(9);
         doc.setFont('helvetica', 'bold');
-        const truncatedValue = pref.value.length > 15 ? pref.value.substring(0, 15) + '...' : pref.value;
-        doc.text(truncatedValue, x, prefsY + 8);
+        doc.text(detail.value, margin + 60, rowY + 8);
       });
       
-      yPosition += 60;
+      yPosition += tripDetails.length * 12 + 15;
       
       // Disclaimer
-      doc.setTextColor(mediumGray.r, mediumGray.g, mediumGray.b);
-      doc.setFontSize(8);
+      doc.setFillColor(goldLight.r, goldLight.g, goldLight.b);
+      doc.roundedRect(margin, yPosition, contentWidth, 25, 3, 3, 'F');
+      doc.setTextColor(goldDark.r, goldDark.g, goldDark.b);
+      doc.setFontSize(9);
       doc.setFont('helvetica', 'italic');
       const disclaimer = 'This itinerary was AI-generated based on your preferences. Please verify opening hours, prices, and availability before your trip.';
-      const disclaimerLines = doc.splitTextToSize(disclaimer, contentWidth - 20);
-      doc.text(disclaimerLines, pageWidth / 2, yPosition, { align: 'center' });
+      const disclaimerLines = doc.splitTextToSize(disclaimer, contentWidth - 10);
+      doc.text(disclaimerLines, margin + 5, yPosition + 10);
       
       // ==================== ITINERARY PAGES ====================
       doc.addPage();
       yPosition = margin;
       
-      // Section Header with gradient effect
-      doc.setFillColor(primary.r, primary.g, primary.b);
-      doc.roundedRect(margin, yPosition, contentWidth, 18, 4, 4, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(14);
+      // Page header
+      doc.setFillColor(primaryLight.r, primaryLight.g, primaryLight.b);
+      doc.roundedRect(margin, yPosition, contentWidth, 12, 3, 3, 'F');
+      doc.setTextColor(primaryDark.r, primaryDark.g, primaryDark.b);
+      doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
-      doc.text('📋 YOUR ITINERARY', margin + 10, yPosition + 12);
+      doc.text('Your Itinerary', margin + 5, yPosition + 8);
       
-      yPosition += 30;
+      yPosition += 20;
       
       // Parse and render markdown content
       const lines = itinerary.split('\n');
-      let listItemIndex = 0;
+      let currentDayColor = primary;
       
       for (const line of lines) {
         const trimmedLine = line.trim();
         if (!trimmedLine) {
-          yPosition += 4;
+          yPosition += 3;
           continue;
         }
         
-        // Day headers (## Day X) - alternating colors
+        // Day headers (## Day X)
         if (trimmedLine.startsWith('## ')) {
-          checkPageBreak(35);
-          yPosition += 10;
+          checkPageBreak(25);
+          yPosition += 8;
           
           const dayMatch = trimmedLine.match(/Day (\d+)/);
-          const dayNum = dayMatch ? dayMatch[1] : '•';
           const dayNumber = dayMatch ? parseInt(dayMatch[1]) : 1;
           const dayTitle = trimmedLine.replace('## ', '');
-          const isEven = dayNumber % 2 === 0;
           
-          // Alternating day badge colors (pink/purple vs teal)
-          const badgeColor = isEven ? teal : primary;
-          const badgeDark = isEven ? tealDark : primaryDark;
+          // Cycle colors: teal, pink, amber
+          const colors = [primary, accent, gold];
+          const darkColors = [primaryDark, accentDark, goldDark];
+          currentDayColor = colors[(dayNumber - 1) % 3];
+          const currentDarkColor = darkColors[(dayNumber - 1) % 3];
           
-          doc.setFillColor(badgeColor.r, badgeColor.g, badgeColor.b);
-          doc.roundedRect(margin, yPosition - 5, contentWidth, 22, 4, 4, 'F');
+          // Day header bar
+          doc.setFillColor(currentDayColor.r, currentDayColor.g, currentDayColor.b);
+          doc.roundedRect(margin, yPosition, contentWidth, 16, 3, 3, 'F');
           
-          // Day number circle
-          doc.setFillColor(255, 255, 255);
-          doc.circle(margin + 15, yPosition + 6, 10, 'F');
-          doc.setTextColor(badgeDark.r, badgeDark.g, badgeDark.b);
+          doc.setTextColor(255, 255, 255);
           doc.setFontSize(12);
           doc.setFont('helvetica', 'bold');
-          doc.text(dayNum, margin + 15, yPosition + 10, { align: 'center' });
+          doc.text(dayTitle, margin + 8, yPosition + 11);
           
-          // Day title
-          doc.setTextColor(255, 255, 255);
-          doc.setFontSize(13);
-          doc.text(dayTitle, margin + 32, yPosition + 10);
-          
-          yPosition += 28;
+          yPosition += 22;
         }
-        // Time of day headers (### Morning, etc) - color-coded by time
+        // Time of day headers (### Morning, etc)
         else if (trimmedLine.startsWith('### ')) {
-          checkPageBreak(20);
-          yPosition += 8;
+          checkPageBreak(18);
+          yPosition += 5;
           
           const timeText = trimmedLine.replace('### ', '');
           const isMorning = timeText.toLowerCase().includes('morning');
           const isAfternoon = timeText.toLowerCase().includes('afternoon');
-          const isEvening = timeText.toLowerCase().includes('evening') || timeText.toLowerCase().includes('night');
-          
-          const icon = isMorning ? '🌅' :
-                      isAfternoon ? '☀️' :
-                      isEvening ? '🌆' : '📍';
           
           // Time-based colors
-          let bgColor, borderColor, textColor;
+          let bgColor, textColor;
           if (isMorning) {
             bgColor = goldLight;
-            borderColor = gold;
             textColor = goldDark;
           } else if (isAfternoon) {
-            bgColor = tealLight;
-            borderColor = teal;
-            textColor = tealDark;
-          } else {
             bgColor = primaryLight;
-            borderColor = primary;
             textColor = primaryDark;
+          } else {
+            bgColor = accentLight;
+            textColor = accentDark;
           }
           
-          // Pill-shaped time badge with dynamic colors
+          // Time badge
           doc.setFillColor(bgColor.r, bgColor.g, bgColor.b);
-          doc.setDrawColor(borderColor.r, borderColor.g, borderColor.b);
-          doc.setLineWidth(0.8);
-          const pillWidth = doc.getTextWidth(timeText) + 30;
-          doc.roundedRect(margin + 20, yPosition - 5, pillWidth, 14, 5, 5, 'FD');
-          
-          // Small colored dot
-          doc.setFillColor(borderColor.r, borderColor.g, borderColor.b);
-          doc.circle(margin + 28, yPosition + 2, 2, 'F');
+          const pillWidth = doc.getTextWidth(timeText) + 15;
+          doc.roundedRect(margin + 5, yPosition, pillWidth, 12, 4, 4, 'F');
           
           doc.setTextColor(textColor.r, textColor.g, textColor.b);
           doc.setFontSize(10);
           doc.setFont('helvetica', 'bold');
-          doc.text(`${icon} ${timeText}`, margin + 34, yPosition + 4);
+          doc.text(timeText, margin + 10, yPosition + 8);
           
-          yPosition += 18;
+          yPosition += 16;
         }
-        // Bold text (activity titles)
+        // Bold text with time (e.g., **8:00 AM - Activity**)
         else if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
-          checkPageBreak(16);
-          doc.setTextColor(accent.r, accent.g, accent.b);
-          doc.setFontSize(11);
+          checkPageBreak(14);
+          doc.setTextColor(currentDayColor.r, currentDayColor.g, currentDayColor.b);
+          doc.setFontSize(10);
           doc.setFont('helvetica', 'bold');
           const cleanText = trimmedLine.replace(/\*\*/g, '');
-          const splitText = doc.splitTextToSize(`📍 ${cleanText}`, contentWidth - 35);
-          doc.text(splitText, margin + 25, yPosition);
-          yPosition += splitText.length * 6 + 5;
+          const splitText = doc.splitTextToSize(cleanText, contentWidth - 15);
+          doc.text(splitText, margin + 10, yPosition);
+          yPosition += splitText.length * 5 + 4;
         }
-        // List items - cycling colors
-        else if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ')) {
-          checkPageBreak(18);
-          
-          // Cycling colors for list items
-          const colors = [primary, teal, gold];
-          const bulletColor = colors[listItemIndex % 3];
-          listItemIndex++;
-          
-          // Colored left border line
-          doc.setDrawColor(bulletColor.r, bulletColor.g, bulletColor.b);
-          doc.setLineWidth(2);
-          doc.line(margin + 24, yPosition - 4, margin + 24, yPosition + 8);
-          
-          // Colored bullet
-          doc.setFillColor(bulletColor.r, bulletColor.g, bulletColor.b);
-          doc.circle(margin + 32, yPosition - 1, 2, 'F');
-          
+        // Regular paragraphs - activity descriptions
+        else if (!trimmedLine.startsWith('#') && !trimmedLine.startsWith('-') && !trimmedLine.startsWith('*')) {
+          checkPageBreak(14);
           doc.setTextColor(darkGray.r, darkGray.g, darkGray.b);
-          doc.setFontSize(10);
-          doc.setFont('helvetica', 'normal');
-          const cleanText = trimmedLine.replace(/^[-*]\s*/, '').replace(/\*\*/g, '').replace(/\*/g, '');
-          const splitText = doc.splitTextToSize(cleanText, contentWidth - 55);
-          doc.text(splitText, margin + 40, yPosition);
-          yPosition += splitText.length * 6 + 6;
-        }
-        // Regular paragraphs
-        else if (!trimmedLine.startsWith('#')) {
-          checkPageBreak(16);
-          doc.setTextColor(mediumGray.r, mediumGray.g, mediumGray.b);
-          doc.setFontSize(10);
+          doc.setFontSize(9);
           doc.setFont('helvetica', 'normal');
           const cleanText = trimmedLine.replace(/\*\*/g, '').replace(/\*/g, '');
-          const splitText = doc.splitTextToSize(cleanText, contentWidth - 35);
-          doc.text(splitText, margin + 25, yPosition);
-          yPosition += splitText.length * 6 + 4;
+          const splitText = doc.splitTextToSize(cleanText, contentWidth - 20);
+          doc.text(splitText, margin + 10, yPosition);
+          yPosition += splitText.length * 5 + 3;
+        }
+        // List items
+        else if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ')) {
+          checkPageBreak(14);
+          
+          // Colored bullet
+          doc.setFillColor(currentDayColor.r, currentDayColor.g, currentDayColor.b);
+          doc.circle(margin + 14, yPosition - 1, 1.5, 'F');
+          
+          doc.setTextColor(darkGray.r, darkGray.g, darkGray.b);
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'normal');
+          const cleanText = trimmedLine.replace(/^[-*]\s*/, '').replace(/\*\*/g, '').replace(/\*/g, '');
+          const splitText = doc.splitTextToSize(cleanText, contentWidth - 25);
+          doc.text(splitText, margin + 20, yPosition);
+          yPosition += splitText.length * 5 + 4;
         }
       }
       
       // ==================== BUDGET BREAKDOWN ====================
-      checkPageBreak(80);
-      yPosition += 15;
+      checkPageBreak(90);
+      yPosition += 12;
       
       // Budget section header
       doc.setFillColor(primary.r, primary.g, primary.b);
-      doc.roundedRect(margin, yPosition, contentWidth, 18, 4, 4, 'F');
+      doc.roundedRect(margin, yPosition, contentWidth, 14, 3, 3, 'F');
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(14);
+      doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
-      doc.text('💰 BUDGET BREAKDOWN', margin + 10, yPosition + 12);
+      doc.text('Budget Breakdown', margin + 5, yPosition + 10);
       
-      yPosition += 28;
+      yPosition += 20;
       
       // Budget table
       const budgetData = [
-        { category: '🎭 Activities & Attractions', allocation: '40%', notes: 'Entry fees, tours, experiences' },
-        { category: '🍽️ Dining & Food', allocation: '35%', notes: 'Meals, snacks, beverages' },
-        { category: '🚗 Transport & Misc', allocation: '25%', notes: 'Local transport, tips, souvenirs' },
+        { category: 'Activities & Attractions', allocation: '40%', notes: 'Entry fees, tours, experiences' },
+        { category: 'Dining & Food', allocation: '35%', notes: 'Meals, snacks, beverages' },
+        { category: 'Transport & Misc', allocation: '25%', notes: 'Local transport, tips, souvenirs' },
       ];
       
       // Table header
       doc.setFillColor(primaryDark.r, primaryDark.g, primaryDark.b);
-      doc.rect(margin, yPosition, contentWidth, 12, 'F');
+      doc.rect(margin, yPosition, contentWidth, 10, 'F');
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
-      doc.text('Category', margin + 5, yPosition + 8);
-      doc.text('Allocation', margin + 85, yPosition + 8);
-      doc.text('Notes', margin + 115, yPosition + 8);
+      doc.text('Expense Category', margin + 5, yPosition + 7);
+      doc.text('Allocation', margin + 85, yPosition + 7);
+      doc.text('Notes', margin + 115, yPosition + 7);
       
-      yPosition += 12;
+      yPosition += 10;
       
       // Table rows
       budgetData.forEach((row, i) => {
-        const rowY = yPosition + i * 14;
+        const rowY = yPosition + i * 10;
         doc.setFillColor(i % 2 === 0 ? 255 : lightGray.r, i % 2 === 0 ? 255 : lightGray.g, i % 2 === 0 ? 255 : lightGray.b);
-        doc.rect(margin, rowY, contentWidth, 14, 'F');
+        doc.rect(margin, rowY, contentWidth, 10, 'F');
         
         doc.setTextColor(darkGray.r, darkGray.g, darkGray.b);
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
-        doc.text(row.category, margin + 5, rowY + 9);
+        doc.text(row.category, margin + 5, rowY + 7);
         doc.setFont('helvetica', 'bold');
-        doc.text(row.allocation, margin + 85, rowY + 9);
+        doc.text(row.allocation, margin + 85, rowY + 7);
         doc.setFont('helvetica', 'normal');
-        doc.text(row.notes, margin + 115, rowY + 9);
+        doc.text(row.notes, margin + 115, rowY + 7);
       });
       
-      yPosition += 42;
+      yPosition += 35;
       
       // Total row
-      doc.setFillColor(primaryLight.r, primaryLight.g, primaryLight.b);
-      doc.rect(margin, yPosition, contentWidth, 14, 'F');
-      doc.setDrawColor(primary.r, primary.g, primary.b);
-      doc.setLineWidth(1);
-      doc.rect(margin, yPosition, contentWidth, 14, 'S');
-      
-      doc.setTextColor(primaryDark.r, primaryDark.g, primaryDark.b);
+      doc.setFillColor(goldLight.r, goldLight.g, goldLight.b);
+      doc.rect(margin, yPosition, contentWidth, 12, 'F');
+      doc.setTextColor(goldDark.r, goldDark.g, goldDark.b);
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
-      doc.text('💰 Total Budget Range', margin + 5, yPosition + 9);
-      doc.text(`${tripData.currency} ${tripData.budgetMin.toLocaleString()} - ${tripData.budgetMax.toLocaleString()}`, margin + 85, yPosition + 9);
+      doc.text(`Total Budget Range: ${tripData.currency} ${tripData.budgetMin.toLocaleString()} - ${tripData.budgetMax.toLocaleString()} (Flexible based on choices)`, margin + 5, yPosition + 8);
       
       // ==================== TRAVEL TIPS ====================
-      yPosition += 30;
-      checkPageBreak(60);
+      yPosition += 22;
+      checkPageBreak(50);
       
-      doc.setFillColor(lightGray.r, lightGray.g, lightGray.b);
-      doc.roundedRect(margin, yPosition, contentWidth, 55, 6, 6, 'F');
-      doc.setDrawColor(primary.r, primary.g, primary.b);
-      doc.setLineWidth(0.5);
-      doc.roundedRect(margin, yPosition, contentWidth, 55, 6, 6, 'S');
-      
-      doc.setTextColor(primaryDark.r, primaryDark.g, primaryDark.b);
+      doc.setFillColor(accentLight.r, accentLight.g, accentLight.b);
+      doc.roundedRect(margin, yPosition, contentWidth, 14, 3, 3, 'F');
+      doc.setTextColor(accentDark.r, accentDark.g, accentDark.b);
       doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
-      doc.text('💡 Travel Tips', margin + 10, yPosition + 12);
+      doc.text('Travel Tips:', margin + 5, yPosition + 10);
+      
+      yPosition += 18;
       
       const tips = [
         '• Book accommodations and major attractions in advance',
@@ -477,7 +383,7 @@ const Itinerary = () => {
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
       tips.forEach((tip, i) => {
-        doc.text(tip, margin + 10, yPosition + 24 + i * 7);
+        doc.text(tip, margin + 5, yPosition + i * 7);
       });
       
       // ==================== FOOTER ON ALL PAGES ====================
@@ -485,18 +391,16 @@ const Itinerary = () => {
       for (let i = 1; i <= totalPages; i++) {
         doc.setPage(i);
         
-        // Footer bar
-        doc.setFillColor(primaryLight.r, primaryLight.g, primaryLight.b);
-        doc.rect(0, pageHeight - 18, pageWidth, 18, 'F');
+        // Simple footer line
         doc.setDrawColor(primary.r, primary.g, primary.b);
         doc.setLineWidth(0.5);
-        doc.line(0, pageHeight - 18, pageWidth, pageHeight - 18);
+        doc.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
         
-        doc.setTextColor(primaryDark.r, primaryDark.g, primaryDark.b);
+        doc.setTextColor(mediumGray.r, mediumGray.g, mediumGray.b);
         doc.setFontSize(8);
         doc.setFont('helvetica', 'normal');
-        doc.text(`Generated by TourGether • ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`, margin, pageHeight - 7);
-        doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin, pageHeight - 7, { align: 'right' });
+        doc.text(`Generated by TourGether`, margin, pageHeight - 8);
+        doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin, pageHeight - 8, { align: 'right' });
       }
       
       // Save the PDF
