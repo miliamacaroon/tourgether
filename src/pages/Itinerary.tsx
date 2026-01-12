@@ -543,16 +543,16 @@ const Itinerary = () => {
       </header>
 
       {/* Hero */}
-      <section className="relative bg-gradient-to-br from-primary/15 via-background to-[hsl(170,60%,45%)]/10 py-16 overflow-hidden">
+      <section className="relative bg-gradient-to-br from-primary/10 via-background to-accent/10 py-16 overflow-hidden">
         {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-[hsl(45,90%,55%)]/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary/10 rounded-full blur-2xl"></div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent/10 rounded-full blur-2xl"></div>
         <div className="container max-w-6xl mx-auto px-4 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/20 to-[hsl(170,60%,45%)]/20 backdrop-blur-sm px-5 py-2.5 rounded-full mb-6 border border-primary/20">
+          <div className="inline-flex items-center gap-2 bg-primary/15 backdrop-blur-sm px-5 py-2.5 rounded-full mb-6 border border-primary/20">
             <Sparkles className="w-4 h-4 text-primary" />
             <span className="text-sm font-semibold text-primary">AI-Generated Itinerary</span>
           </div>
-          <h1 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-primary via-[hsl(350,70%,50%)] to-[hsl(170,60%,40%)] bg-clip-text text-transparent mb-4">
+          <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
             Your Trip to {tripData.destination}
           </h1>
           <p className="text-muted-foreground text-lg">
@@ -602,99 +602,68 @@ const Itinerary = () => {
         <div className="container max-w-4xl mx-auto px-4">
           <Card className="overflow-hidden shadow-2xl border-0 bg-card">
             {/* Top gradient bar */}
-            <div className="h-2 bg-gradient-to-r from-primary via-[hsl(350,70%,55%)] to-[hsl(170,60%,45%)]"></div>
+            <div className="h-1 bg-primary"></div>
             <CardContent className="p-6 md:p-10">
               <ReactMarkdown
                 components={{
                   h2: ({ children }) => {
                     const dayNum = String(children).match(/Day (\d+)/)?.[1];
-                    const dayColors = [
-                      { bg: 'bg-primary', shadow: 'shadow-primary/30', text: 'text-primary', accent: 'bg-primary/20' },
-                      { bg: 'bg-[hsl(170,60%,45%)]', shadow: 'shadow-[hsl(170,60%,45%)]/30', text: 'text-[hsl(170,60%,45%)]', accent: 'bg-[hsl(170,60%,45%)]/20' },
-                      { bg: 'bg-[hsl(350,70%,55%)]', shadow: 'shadow-[hsl(350,70%,55%)]/30', text: 'text-[hsl(350,70%,55%)]', accent: 'bg-[hsl(350,70%,55%)]/20' },
-                      { bg: 'bg-[hsl(45,90%,50%)]', shadow: 'shadow-[hsl(45,90%,50%)]/30', text: 'text-[hsl(45,70%,40%)]', accent: 'bg-[hsl(45,90%,50%)]/20' },
-                    ];
-                    const colorIdx = dayNum ? (parseInt(dayNum) - 1) % dayColors.length : 0;
-                    const colors = dayColors[colorIdx];
                     
                     return (
                       <div className="mt-10 first:mt-0 mb-6">
                         <div className="flex items-center gap-4">
-                          <div className={`w-14 h-14 rounded-2xl ${colors.bg} flex items-center justify-center text-white font-bold text-xl shrink-0 shadow-xl ${colors.shadow} ring-4 ${colors.accent}`}>
+                          <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg shrink-0 shadow-lg">
                             {dayNum || '📍'}
                           </div>
                           <div className="flex-1">
-                            <h2 className={`text-xl md:text-2xl font-bold ${colors.text}`}>{children}</h2>
-                            <div className={`h-1.5 w-24 ${colors.bg} opacity-40 rounded-full mt-2`}></div>
+                            <h2 className="text-xl md:text-2xl font-bold text-foreground">{children}</h2>
+                            <div className="h-1 w-20 bg-primary/30 rounded-full mt-2"></div>
                           </div>
                         </div>
                       </div>
                     );
                   },
-                  h3: ({ children }) => {
-                    const text = String(children).toLowerCase();
-                    let colorClass = 'bg-primary/10 text-primary border-primary/20';
-                    let dotClass = 'bg-primary';
-                    
-                    if (text.includes('morning')) {
-                      colorClass = 'bg-[hsl(45,90%,50%)]/15 text-[hsl(45,70%,35%)] border-[hsl(45,90%,50%)]/30';
-                      dotClass = 'bg-[hsl(45,90%,50%)]';
-                    } else if (text.includes('afternoon')) {
-                      colorClass = 'bg-[hsl(170,60%,45%)]/15 text-[hsl(170,60%,35%)] border-[hsl(170,60%,45%)]/30';
-                      dotClass = 'bg-[hsl(170,60%,45%)]';
-                    } else if (text.includes('evening') || text.includes('night')) {
-                      colorClass = 'bg-[hsl(260,60%,55%)]/15 text-[hsl(260,60%,40%)] border-[hsl(260,60%,55%)]/30';
-                      dotClass = 'bg-[hsl(260,60%,55%)]';
-                    } else if (text.includes('cost') || text.includes('budget')) {
-                      colorClass = 'bg-[hsl(350,70%,55%)]/15 text-[hsl(350,70%,45%)] border-[hsl(350,70%,55%)]/30';
-                      dotClass = 'bg-[hsl(350,70%,55%)]';
-                    } else if (text.includes('tip')) {
-                      colorClass = 'bg-[hsl(200,70%,50%)]/15 text-[hsl(200,70%,35%)] border-[hsl(200,70%,50%)]/30';
-                      dotClass = 'bg-[hsl(200,70%,50%)]';
-                    }
-                    
-                    return (
-                      <div className="mt-6 mb-4 ml-4 md:ml-18">
-                        <div className={`inline-flex items-center gap-3 ${colorClass} px-5 py-2.5 rounded-full border shadow-sm`}>
-                          <span className={`w-2.5 h-2.5 rounded-full ${dotClass} animate-pulse`}></span>
-                          <span className="text-sm font-bold tracking-wide">{children}</span>
-                        </div>
+                  h3: ({ children }) => (
+                    <div className="mt-6 mb-4 ml-4 md:ml-16">
+                      <div className="inline-flex items-center gap-3 bg-accent/10 text-accent-foreground px-4 py-2 rounded-full border border-accent/20">
+                        <span className="w-2 h-2 rounded-full bg-primary"></span>
+                        <span className="text-sm font-semibold">{children}</span>
                       </div>
-                    );
-                  },
+                    </div>
+                  ),
                   p: ({ children }) => (
-                    <p className="text-foreground/85 leading-relaxed mb-4 ml-4 md:ml-18 text-sm md:text-base">{children}</p>
+                    <p className="text-foreground/85 leading-relaxed mb-4 ml-4 md:ml-16 text-sm md:text-base">{children}</p>
                   ),
                   ul: ({ children }) => (
-                    <ul className="space-y-3 mb-6 ml-4 md:ml-18 list-none">{children}</ul>
+                    <ul className="space-y-2 mb-6 ml-4 md:ml-16 list-none">{children}</ul>
                   ),
                   ol: ({ children }) => (
-                    <ol className="space-y-3 mb-6 ml-4 md:ml-18 list-none">{children}</ol>
+                    <ol className="space-y-2 mb-6 ml-4 md:ml-16 list-none">{children}</ol>
                   ),
                   li: ({ children }) => (
-                    <li className="flex items-start gap-3 text-foreground/85 text-sm md:text-base bg-gradient-to-r from-muted/30 to-transparent p-4 rounded-xl border-l-4 border-[hsl(170,60%,45%)] hover:border-primary hover:from-accent/50 hover:shadow-md transition-all duration-300 group">
-                      <span className="text-[hsl(170,60%,45%)] text-lg group-hover:text-primary transition-colors">▸</span>
+                    <li className="flex items-start gap-3 text-foreground/85 text-sm md:text-base p-3 rounded-lg border-l-3 border-primary/40 bg-muted/20 hover:bg-accent/20 transition-colors">
+                      <span className="text-primary text-sm mt-0.5">•</span>
                       <span className="flex-1">{children}</span>
                     </li>
                   ),
                   strong: ({ children }) => (
-                    <strong className="font-bold text-[hsl(350,70%,50%)]">{children}</strong>
+                    <strong className="font-semibold text-foreground">{children}</strong>
                   ),
                   em: ({ children }) => (
-                    <span className="text-[hsl(170,60%,40%)] font-medium italic">{children}</span>
+                    <span className="text-muted-foreground italic">{children}</span>
                   ),
                   hr: () => (
-                    <hr className="my-8 border-0 h-px bg-gradient-to-r from-transparent via-border to-transparent ml-4 md:ml-18" />
+                    <hr className="my-8 border-0 h-px bg-border ml-4 md:ml-16" />
                   ),
                   table: ({ children }) => (
-                    <div className="my-6 ml-4 md:ml-18 overflow-x-auto">
-                      <table className="w-full border-collapse rounded-xl overflow-hidden shadow-lg border border-border">
+                    <div className="my-6 ml-4 md:ml-16 overflow-x-auto">
+                      <table className="w-full border-collapse rounded-lg overflow-hidden border border-border">
                         {children}
                       </table>
                     </div>
                   ),
                   thead: ({ children }) => (
-                    <thead className="bg-gradient-to-r from-[hsl(170,60%,45%)] to-[hsl(170,60%,40%)] text-white">
+                    <thead className="bg-primary text-primary-foreground">
                       {children}
                     </thead>
                   ),
@@ -704,7 +673,7 @@ const Itinerary = () => {
                     </tbody>
                   ),
                   tr: ({ children }) => (
-                    <tr className="border-b border-border last:border-b-0 hover:bg-muted/30 transition-colors">
+                    <tr className="border-b border-border last:border-b-0 hover:bg-muted/20 transition-colors">
                       {children}
                     </tr>
                   ),
@@ -729,26 +698,26 @@ const Itinerary = () => {
       </section>
 
       {/* Budget Breakdown */}
-      <section className="py-12 bg-gradient-to-b from-background via-[hsl(170,60%,45%)]/5 to-background">
+      <section className="py-12 bg-muted/30">
         <div className="container max-w-4xl mx-auto px-4">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 bg-[hsl(170,60%,45%)]/15 px-4 py-2 rounded-full mb-4 border border-[hsl(170,60%,45%)]/30">
-              <Wallet className="w-5 h-5 text-[hsl(170,60%,45%)]" />
-              <span className="text-sm font-semibold text-[hsl(170,60%,40%)]">Estimated Budget</span>
+            <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-4 border border-primary/20">
+              <Wallet className="w-5 h-5 text-primary" />
+              <span className="text-sm font-semibold text-primary">Estimated Budget</span>
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[hsl(170,60%,45%)] to-[hsl(170,60%,35%)] bg-clip-text text-transparent">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground">
               Budget Breakdown
             </h2>
           </div>
           
-          <Card className="overflow-hidden border border-border shadow-xl">
-            <div className="h-2 bg-gradient-to-r from-[hsl(170,60%,45%)] via-[hsl(45,90%,50%)] to-[hsl(350,70%,55%)]"></div>
+          <Card className="overflow-hidden border border-border shadow-lg">
+            <div className="h-1 bg-primary"></div>
             <CardContent className="p-0">
               {/* Table */}
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="bg-gradient-to-r from-[hsl(170,60%,45%)] to-[hsl(170,60%,40%)] text-white">
+                    <tr className="bg-primary text-primary-foreground">
                       <th className="px-6 py-4 text-left font-semibold">Category</th>
                       <th className="px-6 py-4 text-center font-semibold">Allocation</th>
                       <th className="px-6 py-4 text-right font-semibold">Estimated Cost</th>
@@ -766,7 +735,7 @@ const Itinerary = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-center">
-                        <span className="inline-flex items-center justify-center w-14 h-8 bg-[hsl(350,70%,55%)]/15 text-[hsl(350,70%,45%)] font-bold rounded-full">40%</span>
+                        <span className="inline-flex items-center justify-center w-14 h-8 bg-primary/15 text-primary font-bold rounded-full">40%</span>
                       </td>
                       <td className="px-6 py-4 text-right font-semibold text-foreground">
                         {tripData.currency} {Math.round((tripData.budgetMin + tripData.budgetMax) / 2 * 0.4).toLocaleString()}
@@ -783,7 +752,7 @@ const Itinerary = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-center">
-                        <span className="inline-flex items-center justify-center w-14 h-8 bg-[hsl(45,90%,50%)]/20 text-[hsl(45,70%,35%)] font-bold rounded-full">35%</span>
+                        <span className="inline-flex items-center justify-center w-14 h-8 bg-primary/15 text-primary font-bold rounded-full">35%</span>
                       </td>
                       <td className="px-6 py-4 text-right font-semibold text-foreground">
                         {tripData.currency} {Math.round((tripData.budgetMin + tripData.budgetMax) / 2 * 0.35).toLocaleString()}
@@ -800,7 +769,7 @@ const Itinerary = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-center">
-                        <span className="inline-flex items-center justify-center w-14 h-8 bg-[hsl(170,60%,45%)]/15 text-[hsl(170,60%,35%)] font-bold rounded-full">25%</span>
+                        <span className="inline-flex items-center justify-center w-14 h-8 bg-primary/15 text-primary font-bold rounded-full">25%</span>
                       </td>
                       <td className="px-6 py-4 text-right font-semibold text-foreground">
                         {tripData.currency} {Math.round((tripData.budgetMin + tripData.budgetMax) / 2 * 0.25).toLocaleString()}
@@ -808,12 +777,12 @@ const Itinerary = () => {
                     </tr>
                   </tbody>
                   <tfoot>
-                    <tr className="bg-gradient-to-r from-[hsl(170,60%,45%)]/10 to-[hsl(45,90%,50%)]/10">
+                    <tr className="bg-primary/5">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <span className="text-xl">💰</span>
                           <div>
-                            <p className="font-bold text-[hsl(170,60%,40%)]">Total Budget Range</p>
+                            <p className="font-bold text-foreground">Total Budget Range</p>
                             <p className="text-xs text-muted-foreground flex items-center gap-1">
                               <Users className="w-3 h-3" />
                               For {tripData.travelers} {tripData.travelers === 1 ? 'traveler' : 'travelers'}
@@ -822,10 +791,10 @@ const Itinerary = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-center">
-                        <span className="inline-flex items-center justify-center w-16 h-8 bg-[hsl(170,60%,45%)] text-white font-bold rounded-full">100%</span>
+                        <span className="inline-flex items-center justify-center w-16 h-8 bg-primary text-primary-foreground font-bold rounded-full">100%</span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <p className="text-xl font-bold text-[hsl(170,60%,40%)]">
+                        <p className="text-xl font-bold text-primary">
                           {tripData.currency} {tripData.budgetMin.toLocaleString()} - {tripData.budgetMax.toLocaleString()}
                         </p>
                       </td>
