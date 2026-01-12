@@ -563,59 +563,152 @@ const Itinerary = () => {
       {/* Itinerary Content */}
       <section className="py-12">
         <div className="container max-w-4xl mx-auto px-4">
-          <Card className="overflow-hidden shadow-lg">
+          <Card className="overflow-hidden shadow-xl border-2 border-primary/20 bg-gradient-to-br from-card via-card to-primary/5">
             <CardContent className="p-6 md:p-10">
               <ReactMarkdown
                 components={{
                   h2: ({ children }) => (
                     <div className="mt-10 first:mt-0 mb-6">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-bold text-lg shrink-0 shadow-lg shadow-primary/25">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary via-primary to-accent flex items-center justify-center text-primary-foreground font-bold text-xl shrink-0 shadow-xl shadow-primary/30 ring-4 ring-primary/20">
                           {String(children).match(/Day (\d+)/)?.[1] || '📍'}
                         </div>
-                        <div>
-                          <h2 className="text-xl md:text-2xl font-bold text-foreground">{children}</h2>
-                          <div className="h-1 w-16 bg-gradient-to-r from-primary to-primary/40 rounded-full mt-2"></div>
+                        <div className="flex-1">
+                          <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-primary via-accent-foreground to-primary bg-clip-text text-transparent">{children}</h2>
+                          <div className="h-1.5 w-24 bg-gradient-to-r from-primary via-accent to-primary/40 rounded-full mt-2"></div>
                         </div>
                       </div>
                     </div>
                   ),
                   h3: ({ children }) => (
-                    <div className="mt-6 mb-3 ml-4 md:ml-16">
-                      <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full border border-primary/20">
-                        <span className="w-2 h-2 rounded-full bg-primary"></span>
-                        <span className="text-sm font-semibold text-primary">{children}</span>
+                    <div className="mt-6 mb-4 ml-4 md:ml-18">
+                      <div className="inline-flex items-center gap-3 bg-gradient-to-r from-primary/20 via-accent/15 to-primary/10 px-5 py-2.5 rounded-full border border-primary/30 shadow-md shadow-primary/10">
+                        <span className="w-3 h-3 rounded-full bg-gradient-to-br from-primary to-accent animate-pulse"></span>
+                        <span className="text-sm font-bold text-primary tracking-wide">{children}</span>
                       </div>
                     </div>
                   ),
                   p: ({ children }) => (
-                    <p className="text-foreground/80 leading-relaxed mb-4 ml-4 md:ml-16 text-sm md:text-base">{children}</p>
+                    <p className="text-foreground/85 leading-relaxed mb-4 ml-4 md:ml-18 text-sm md:text-base">{children}</p>
                   ),
                   ul: ({ children }) => (
-                    <ul className="space-y-3 mb-6 ml-4 md:ml-16 list-none">{children}</ul>
+                    <ul className="space-y-3 mb-6 ml-4 md:ml-18 list-none">{children}</ul>
                   ),
                   ol: ({ children }) => (
-                    <ol className="space-y-3 mb-6 ml-4 md:ml-16 list-none">{children}</ol>
+                    <ol className="space-y-3 mb-6 ml-4 md:ml-18 list-none">{children}</ol>
                   ),
                   li: ({ children }) => (
-                    <li className="flex items-start gap-3 text-foreground/80 text-sm md:text-base bg-primary/5 p-3 rounded-lg border-l-4 border-primary/40 hover:border-primary transition-colors">
-                      <span className="text-primary text-lg">▸</span>
+                    <li className="flex items-start gap-3 text-foreground/85 text-sm md:text-base bg-gradient-to-r from-primary/10 via-accent/5 to-transparent p-4 rounded-xl border-l-4 border-primary hover:border-accent hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 group">
+                      <span className="text-primary text-lg group-hover:text-accent transition-colors">▸</span>
                       <span className="flex-1">{children}</span>
                     </li>
                   ),
                   strong: ({ children }) => (
-                    <strong className="font-semibold text-primary">{children}</strong>
+                    <strong className="font-bold bg-gradient-to-r from-primary to-accent-foreground bg-clip-text text-transparent">{children}</strong>
                   ),
                   em: ({ children }) => (
                     <span className="text-accent-foreground font-medium italic">{children}</span>
                   ),
                   hr: () => (
-                    <hr className="my-8 border-primary/20 ml-4 md:ml-16" />
+                    <hr className="my-8 border-primary/30 ml-4 md:ml-18" />
                   ),
                 }}
               >
                 {itinerary}
               </ReactMarkdown>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Budget Breakdown */}
+      <section className="py-12 bg-gradient-to-b from-background via-primary/5 to-background">
+        <div className="container max-w-4xl mx-auto px-4">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/20 to-accent/20 px-4 py-2 rounded-full mb-4">
+              <Wallet className="w-5 h-5 text-primary" />
+              <span className="text-sm font-semibold text-primary">Estimated Budget</span>
+            </div>
+            <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary via-accent-foreground to-primary bg-clip-text text-transparent">
+              Budget Breakdown
+            </h2>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-4 mb-6">
+            <Card className="overflow-hidden border-2 border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 group">
+              <div className="h-2 bg-gradient-to-r from-primary to-primary/60"></div>
+              <CardContent className="p-6 text-center">
+                <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <span className="text-2xl">🎭</span>
+                </div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Activities & Attractions</p>
+                <p className="text-3xl font-bold text-primary mb-2">40%</p>
+                <p className="text-sm text-muted-foreground">Entry fees, tours, experiences</p>
+                <div className="mt-4 pt-4 border-t border-border">
+                  <p className="text-lg font-semibold text-foreground">
+                    {tripData.currency} {Math.round((tripData.budgetMin + tripData.budgetMax) / 2 * 0.4).toLocaleString()}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Estimated amount</p>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="overflow-hidden border-2 border-accent-foreground/20 hover:border-accent-foreground/40 transition-all duration-300 hover:shadow-xl hover:shadow-accent/10 group">
+              <div className="h-2 bg-gradient-to-r from-accent-foreground to-accent-foreground/60"></div>
+              <CardContent className="p-6 text-center">
+                <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-accent/30 to-accent/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <span className="text-2xl">🍽️</span>
+                </div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Dining & Food</p>
+                <p className="text-3xl font-bold text-accent-foreground mb-2">35%</p>
+                <p className="text-sm text-muted-foreground">Meals, snacks, beverages</p>
+                <div className="mt-4 pt-4 border-t border-border">
+                  <p className="text-lg font-semibold text-foreground">
+                    {tripData.currency} {Math.round((tripData.budgetMin + tripData.budgetMax) / 2 * 0.35).toLocaleString()}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Estimated amount</p>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="overflow-hidden border-2 border-secondary/40 hover:border-secondary/60 transition-all duration-300 hover:shadow-xl hover:shadow-secondary/10 group">
+              <div className="h-2 bg-gradient-to-r from-secondary to-secondary/60"></div>
+              <CardContent className="p-6 text-center">
+                <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-secondary/20 to-secondary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <span className="text-2xl">🚗</span>
+                </div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Transport & Misc</p>
+                <p className="text-3xl font-bold text-secondary-foreground mb-2">25%</p>
+                <p className="text-sm text-muted-foreground">Local transport, tips, souvenirs</p>
+                <div className="mt-4 pt-4 border-t border-border">
+                  <p className="text-lg font-semibold text-foreground">
+                    {tripData.currency} {Math.round((tripData.budgetMin + tripData.budgetMax) / 2 * 0.25).toLocaleString()}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Estimated amount</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <Card className="border-2 border-primary/30 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 shadow-lg">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
+                    <span className="text-xl">💰</span>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Budget Range</p>
+                    <p className="text-2xl font-bold bg-gradient-to-r from-primary to-accent-foreground bg-clip-text text-transparent">
+                      {tripData.currency} {tripData.budgetMin.toLocaleString()} - {tripData.budgetMax.toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground bg-card/50 px-4 py-2 rounded-full">
+                  <Users className="w-4 h-4" />
+                  <span>For {tripData.travelers} {tripData.travelers === 1 ? 'traveler' : 'travelers'}</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
