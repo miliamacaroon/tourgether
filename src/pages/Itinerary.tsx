@@ -69,58 +69,168 @@ const Itinerary = () => {
       const contentWidth = pageWidth - margin * 2;
       let yPosition = margin;
 
+      // Colors - Orchid theme
+      const primary = { r: 168, g: 85, b: 247 };      // Purple-500
+      const primaryDark = { r: 126, g: 34, b: 206 };  // Purple-700
+      const primaryLight = { r: 243, g: 232, b: 255 }; // Purple-50
+      const accent = { r: 236, g: 72, b: 153 };        // Pink-500
+      const darkGray = { r: 30, g: 30, b: 46 };
+      const mediumGray = { r: 100, g: 100, b: 120 };
+      const lightGray = { r: 248, g: 245, b: 255 };
+
       // Helper function to add new page if needed
       const checkPageBreak = (requiredHeight: number) => {
-        if (yPosition + requiredHeight > pageHeight - 25) {
+        if (yPosition + requiredHeight > pageHeight - 30) {
           doc.addPage();
           yPosition = margin + 10;
+          // Add subtle header on new pages
+          doc.setFillColor(primaryLight.r, primaryLight.g, primaryLight.b);
+          doc.rect(0, 0, pageWidth, 15, 'F');
+          doc.setDrawColor(primary.r, primary.g, primary.b);
+          doc.setLineWidth(0.5);
+          doc.line(0, 15, pageWidth, 15);
           return true;
         }
         return false;
       };
 
-      // Header with brand color
-      doc.setFillColor(147, 51, 234);
-      doc.rect(0, 0, pageWidth, 50, 'F');
+      // ==================== COVER PAGE ====================
       
-      // Title
+      // Gradient header background
+      doc.setFillColor(primary.r, primary.g, primary.b);
+      doc.rect(0, 0, pageWidth, 80, 'F');
+      
+      // Decorative diagonal stripe
+      doc.setFillColor(primaryDark.r, primaryDark.g, primaryDark.b);
+      doc.triangle(pageWidth - 60, 0, pageWidth, 0, pageWidth, 60, 'F');
+      
+      // Brand name
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(28);
+      doc.setFontSize(36);
       doc.setFont('helvetica', 'bold');
-      doc.text('TourGether', pageWidth / 2, 22, { align: 'center' });
+      doc.text('TourGether', pageWidth / 2, 35, { align: 'center' });
       
-      doc.setFontSize(16);
+      // Tagline
+      doc.setFontSize(12);
       doc.setFont('helvetica', 'normal');
-      doc.text(`Your Trip to ${tripData.destination}`, pageWidth / 2, 38, { align: 'center' });
+      doc.text('AI-Powered Travel Planning', pageWidth / 2, 50, { align: 'center' });
       
-      yPosition = 65;
-      
-      // Trip Summary Box
-      doc.setFillColor(250, 245, 255);
-      doc.roundedRect(margin, yPosition, contentWidth, 45, 4, 4, 'F');
-      doc.setDrawColor(147, 51, 234);
-      doc.setLineWidth(0.5);
-      doc.roundedRect(margin, yPosition, contentWidth, 45, 4, 4, 'S');
-      
-      const colWidth = contentWidth / 4;
-      
-      doc.setTextColor(120, 120, 120);
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.text('DATES', margin + colWidth * 0 + 10, yPosition + 14);
-      doc.text('DURATION', margin + colWidth * 1 + 10, yPosition + 14);
-      doc.text('BUDGET', margin + colWidth * 2 + 10, yPosition + 14);
-      doc.text('TRAVELERS', margin + colWidth * 3 + 10, yPosition + 14);
-      
-      doc.setTextColor(40, 40, 40);
-      doc.setFontSize(11);
+      // Destination badge
+      doc.setFillColor(255, 255, 255);
+      const destText = tripData.destination.toUpperCase();
+      const destWidth = Math.min(doc.getTextWidth(destText) * 1.5 + 30, contentWidth);
+      doc.roundedRect((pageWidth - destWidth) / 2, 58, destWidth, 16, 4, 4, 'F');
+      doc.setTextColor(primary.r, primary.g, primary.b);
+      doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.text(`${formatDate(tripData.startDate)}`, margin + colWidth * 0 + 10, yPosition + 28);
-      doc.text(`${tripData.daysCount} days`, margin + colWidth * 1 + 10, yPosition + 28);
-      doc.text(`${tripData.currency} ${tripData.budgetMin.toLocaleString()}-${tripData.budgetMax.toLocaleString()}`, margin + colWidth * 2 + 10, yPosition + 28);
-      doc.text(`${tripData.travelers} ${tripData.travelers === 1 ? 'person' : 'people'}`, margin + colWidth * 3 + 10, yPosition + 28);
+      doc.text(destText, pageWidth / 2, 69, { align: 'center' });
+      
+      yPosition = 100;
+      
+      // Trip Details Card
+      doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(primary.r, primary.g, primary.b);
+      doc.setLineWidth(1);
+      doc.roundedRect(margin, yPosition, contentWidth, 70, 6, 6, 'FD');
+      
+      // Card header
+      doc.setFillColor(primaryLight.r, primaryLight.g, primaryLight.b);
+      doc.roundedRect(margin, yPosition, contentWidth, 20, 6, 6, 'F');
+      doc.rect(margin, yPosition + 14, contentWidth, 6, 'F');
+      
+      doc.setTextColor(primaryDark.r, primaryDark.g, primaryDark.b);
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('TRIP DETAILS', margin + 10, yPosition + 13);
+      
+      // Grid layout for details
+      const detailsY = yPosition + 32;
+      const colWidth = contentWidth / 2;
+      
+      const details = [
+        { icon: '📅', label: 'DATES', value: `${formatDate(tripData.startDate)} - ${formatDate(tripData.endDate)}` },
+        { icon: '⏱️', label: 'DURATION', value: `${tripData.daysCount} days` },
+        { icon: '💰', label: 'BUDGET', value: `${tripData.currency} ${tripData.budgetMin.toLocaleString()} - ${tripData.budgetMax.toLocaleString()}` },
+        { icon: '👥', label: 'TRAVELERS', value: `${tripData.travelers} ${tripData.travelers === 1 ? 'person' : 'people'}` },
+      ];
+      
+      details.forEach((detail, i) => {
+        const x = margin + 15 + (i % 2) * colWidth;
+        const y = detailsY + Math.floor(i / 2) * 18;
+        
+        doc.setTextColor(mediumGray.r, mediumGray.g, mediumGray.b);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`${detail.icon} ${detail.label}`, x, y);
+        
+        doc.setTextColor(darkGray.r, darkGray.g, darkGray.b);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text(detail.value, x, y + 8);
+      });
+      
+      yPosition += 85;
+      
+      // Preferences Card
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(margin, yPosition, contentWidth, 45, 6, 6, 'FD');
+      
+      doc.setFillColor(primaryLight.r, primaryLight.g, primaryLight.b);
+      doc.roundedRect(margin, yPosition, contentWidth, 20, 6, 6, 'F');
+      doc.rect(margin, yPosition + 14, contentWidth, 6, 'F');
+      
+      doc.setTextColor(primaryDark.r, primaryDark.g, primaryDark.b);
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('PREFERENCES', margin + 10, yPosition + 13);
+      
+      const prefsY = yPosition + 32;
+      const prefColWidth = contentWidth / 3;
+      
+      const prefs = [
+        { icon: '🎯', label: 'TYPE', value: tripData.tripType.replace('_', ' ').toUpperCase() },
+        { icon: '🚶', label: 'PACE', value: tripData.pace.toUpperCase() },
+        { icon: '🍽️', label: 'DINING', value: tripData.diningStyle.toUpperCase() },
+      ];
+      
+      prefs.forEach((pref, i) => {
+        const x = margin + 15 + i * prefColWidth;
+        
+        doc.setTextColor(mediumGray.r, mediumGray.g, mediumGray.b);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`${pref.icon} ${pref.label}`, x, prefsY);
+        
+        doc.setTextColor(darkGray.r, darkGray.g, darkGray.b);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        const truncatedValue = pref.value.length > 15 ? pref.value.substring(0, 15) + '...' : pref.value;
+        doc.text(truncatedValue, x, prefsY + 8);
+      });
       
       yPosition += 60;
+      
+      // Disclaimer
+      doc.setTextColor(mediumGray.r, mediumGray.g, mediumGray.b);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'italic');
+      const disclaimer = 'This itinerary was AI-generated based on your preferences. Please verify opening hours, prices, and availability before your trip.';
+      const disclaimerLines = doc.splitTextToSize(disclaimer, contentWidth - 20);
+      doc.text(disclaimerLines, pageWidth / 2, yPosition, { align: 'center' });
+      
+      // ==================== ITINERARY PAGES ====================
+      doc.addPage();
+      yPosition = margin;
+      
+      // Section Header
+      doc.setFillColor(primary.r, primary.g, primary.b);
+      doc.roundedRect(margin, yPosition, contentWidth, 18, 4, 4, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('📋 YOUR ITINERARY', margin + 10, yPosition + 12);
+      
+      yPosition += 30;
       
       // Parse and render markdown content
       const lines = itinerary.split('\n');
@@ -128,108 +238,217 @@ const Itinerary = () => {
       for (const line of lines) {
         const trimmedLine = line.trim();
         if (!trimmedLine) {
-          yPosition += 5;
+          yPosition += 4;
           continue;
         }
         
         // Day headers (## Day X)
         if (trimmedLine.startsWith('## ')) {
-          checkPageBreak(30);
-          yPosition += 12;
+          checkPageBreak(35);
+          yPosition += 10;
           
-          // Day badge
           const dayMatch = trimmedLine.match(/Day (\d+)/);
           const dayNum = dayMatch ? dayMatch[1] : '•';
+          const dayTitle = trimmedLine.replace('## ', '');
           
-          doc.setFillColor(147, 51, 234);
-          doc.circle(margin + 10, yPosition + 2, 10, 'F');
-          doc.setTextColor(255, 255, 255);
+          // Gradient-style day badge
+          doc.setFillColor(primary.r, primary.g, primary.b);
+          doc.roundedRect(margin, yPosition - 5, contentWidth, 22, 4, 4, 'F');
+          
+          // Day number circle
+          doc.setFillColor(255, 255, 255);
+          doc.circle(margin + 15, yPosition + 6, 10, 'F');
+          doc.setTextColor(primary.r, primary.g, primary.b);
           doc.setFontSize(12);
           doc.setFont('helvetica', 'bold');
-          doc.text(dayNum, margin + 10, yPosition + 6, { align: 'center' });
+          doc.text(dayNum, margin + 15, yPosition + 10, { align: 'center' });
           
           // Day title
-          doc.setTextColor(40, 40, 40);
-          doc.setFontSize(16);
-          doc.text(trimmedLine.replace('## ', ''), margin + 26, yPosition + 6);
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(13);
+          doc.text(dayTitle, margin + 32, yPosition + 10);
           
-          // Underline
-          doc.setDrawColor(147, 51, 234);
-          doc.setLineWidth(0.5);
-          doc.line(margin + 26, yPosition + 10, pageWidth - margin, yPosition + 10);
-          
-          yPosition += 22;
+          yPosition += 28;
         }
         // Time of day headers (### Morning, etc)
         else if (trimmedLine.startsWith('### ')) {
-          checkPageBreak(18);
-          yPosition += 6;
+          checkPageBreak(20);
+          yPosition += 8;
           
           const timeText = trimmedLine.replace('### ', '');
-          const textWidth = doc.getTextWidth(timeText) + 12;
+          const icon = timeText.toLowerCase().includes('morning') ? '🌅' :
+                      timeText.toLowerCase().includes('afternoon') ? '☀️' :
+                      timeText.toLowerCase().includes('evening') ? '🌆' :
+                      timeText.toLowerCase().includes('night') ? '🌙' : '📍';
           
-          doc.setFillColor(243, 232, 255);
-          doc.roundedRect(margin + 20, yPosition - 5, textWidth, 12, 3, 3, 'F');
+          // Pill-shaped time badge
+          doc.setFillColor(primaryLight.r, primaryLight.g, primaryLight.b);
+          doc.setDrawColor(primary.r, primary.g, primary.b);
+          doc.setLineWidth(0.5);
+          const pillWidth = doc.getTextWidth(timeText) + 25;
+          doc.roundedRect(margin + 20, yPosition - 5, pillWidth, 14, 5, 5, 'FD');
           
-          doc.setTextColor(107, 33, 168);
+          doc.setTextColor(primaryDark.r, primaryDark.g, primaryDark.b);
           doc.setFontSize(10);
           doc.setFont('helvetica', 'bold');
-          doc.text(timeText, margin + 26, yPosition + 2);
+          doc.text(`${icon} ${timeText}`, margin + 28, yPosition + 4);
           
-          yPosition += 16;
+          yPosition += 18;
         }
         // Bold text (activity titles)
         else if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
-          checkPageBreak(14);
-          doc.setTextColor(50, 50, 50);
+          checkPageBreak(16);
+          doc.setTextColor(accent.r, accent.g, accent.b);
           doc.setFontSize(11);
           doc.setFont('helvetica', 'bold');
           const cleanText = trimmedLine.replace(/\*\*/g, '');
-          const splitText = doc.splitTextToSize(cleanText, contentWidth - 30);
-          doc.text(splitText, margin + 26, yPosition);
-          yPosition += splitText.length * 6 + 4;
+          const splitText = doc.splitTextToSize(`📍 ${cleanText}`, contentWidth - 35);
+          doc.text(splitText, margin + 25, yPosition);
+          yPosition += splitText.length * 6 + 5;
         }
         // List items
         else if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ')) {
-          checkPageBreak(16);
+          checkPageBreak(18);
           
-          // Bullet point
-          doc.setFillColor(147, 51, 234);
+          // Colored bullet
+          doc.setFillColor(primary.r, primary.g, primary.b);
           doc.circle(margin + 28, yPosition - 1, 2, 'F');
           
-          doc.setTextColor(70, 70, 70);
+          doc.setTextColor(darkGray.r, darkGray.g, darkGray.b);
           doc.setFontSize(10);
           doc.setFont('helvetica', 'normal');
           const cleanText = trimmedLine.replace(/^[-*]\s*/, '').replace(/\*\*/g, '').replace(/\*/g, '');
-          const splitText = doc.splitTextToSize(cleanText, contentWidth - 45);
+          const splitText = doc.splitTextToSize(cleanText, contentWidth - 50);
           doc.text(splitText, margin + 36, yPosition);
-          yPosition += splitText.length * 6 + 4;
+          yPosition += splitText.length * 6 + 5;
         }
         // Regular paragraphs
         else if (!trimmedLine.startsWith('#')) {
-          checkPageBreak(14);
-          doc.setTextColor(80, 80, 80);
+          checkPageBreak(16);
+          doc.setTextColor(mediumGray.r, mediumGray.g, mediumGray.b);
           doc.setFontSize(10);
           doc.setFont('helvetica', 'normal');
           const cleanText = trimmedLine.replace(/\*\*/g, '').replace(/\*/g, '');
-          const splitText = doc.splitTextToSize(cleanText, contentWidth - 30);
-          doc.text(splitText, margin + 26, yPosition);
+          const splitText = doc.splitTextToSize(cleanText, contentWidth - 35);
+          doc.text(splitText, margin + 25, yPosition);
           yPosition += splitText.length * 6 + 4;
         }
       }
       
-      // Footer on last page
+      // ==================== BUDGET BREAKDOWN ====================
+      checkPageBreak(80);
+      yPosition += 15;
+      
+      // Budget section header
+      doc.setFillColor(primary.r, primary.g, primary.b);
+      doc.roundedRect(margin, yPosition, contentWidth, 18, 4, 4, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('💰 BUDGET BREAKDOWN', margin + 10, yPosition + 12);
+      
+      yPosition += 28;
+      
+      // Budget table
+      const budgetData = [
+        { category: '🎭 Activities & Attractions', allocation: '40%', notes: 'Entry fees, tours, experiences' },
+        { category: '🍽️ Dining & Food', allocation: '35%', notes: 'Meals, snacks, beverages' },
+        { category: '🚗 Transport & Misc', allocation: '25%', notes: 'Local transport, tips, souvenirs' },
+      ];
+      
+      // Table header
+      doc.setFillColor(primaryDark.r, primaryDark.g, primaryDark.b);
+      doc.rect(margin, yPosition, contentWidth, 12, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Category', margin + 5, yPosition + 8);
+      doc.text('Allocation', margin + 85, yPosition + 8);
+      doc.text('Notes', margin + 115, yPosition + 8);
+      
+      yPosition += 12;
+      
+      // Table rows
+      budgetData.forEach((row, i) => {
+        const rowY = yPosition + i * 14;
+        doc.setFillColor(i % 2 === 0 ? 255 : lightGray.r, i % 2 === 0 ? 255 : lightGray.g, i % 2 === 0 ? 255 : lightGray.b);
+        doc.rect(margin, rowY, contentWidth, 14, 'F');
+        
+        doc.setTextColor(darkGray.r, darkGray.g, darkGray.b);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.text(row.category, margin + 5, rowY + 9);
+        doc.setFont('helvetica', 'bold');
+        doc.text(row.allocation, margin + 85, rowY + 9);
+        doc.setFont('helvetica', 'normal');
+        doc.text(row.notes, margin + 115, rowY + 9);
+      });
+      
+      yPosition += 42;
+      
+      // Total row
+      doc.setFillColor(primaryLight.r, primaryLight.g, primaryLight.b);
+      doc.rect(margin, yPosition, contentWidth, 14, 'F');
+      doc.setDrawColor(primary.r, primary.g, primary.b);
+      doc.setLineWidth(1);
+      doc.rect(margin, yPosition, contentWidth, 14, 'S');
+      
+      doc.setTextColor(primaryDark.r, primaryDark.g, primaryDark.b);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('💰 Total Budget Range', margin + 5, yPosition + 9);
+      doc.text(`${tripData.currency} ${tripData.budgetMin.toLocaleString()} - ${tripData.budgetMax.toLocaleString()}`, margin + 85, yPosition + 9);
+      
+      // ==================== TRAVEL TIPS ====================
+      yPosition += 30;
+      checkPageBreak(60);
+      
+      doc.setFillColor(lightGray.r, lightGray.g, lightGray.b);
+      doc.roundedRect(margin, yPosition, contentWidth, 55, 6, 6, 'F');
+      doc.setDrawColor(primary.r, primary.g, primary.b);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(margin, yPosition, contentWidth, 55, 6, 6, 'S');
+      
+      doc.setTextColor(primaryDark.r, primaryDark.g, primaryDark.b);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text('💡 Travel Tips', margin + 10, yPosition + 12);
+      
+      const tips = [
+        '• Book accommodations and major attractions in advance',
+        '• Keep digital and physical copies of important documents',
+        '• Check visa requirements and travel advisories',
+        '• Consider travel insurance for peace of mind',
+        '• Download offline maps and translation apps',
+      ];
+      
+      doc.setTextColor(darkGray.r, darkGray.g, darkGray.b);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      tips.forEach((tip, i) => {
+        doc.text(tip, margin + 10, yPosition + 24 + i * 7);
+      });
+      
+      // ==================== FOOTER ON ALL PAGES ====================
       const totalPages = doc.getNumberOfPages();
       for (let i = 1; i <= totalPages; i++) {
         doc.setPage(i);
-        doc.setFillColor(248, 250, 252);
-        doc.rect(0, pageHeight - 15, pageWidth, 15, 'F');
-        doc.setTextColor(150, 150, 150);
+        
+        // Footer bar
+        doc.setFillColor(primaryLight.r, primaryLight.g, primaryLight.b);
+        doc.rect(0, pageHeight - 18, pageWidth, 18, 'F');
+        doc.setDrawColor(primary.r, primary.g, primary.b);
+        doc.setLineWidth(0.5);
+        doc.line(0, pageHeight - 18, pageWidth, pageHeight - 18);
+        
+        doc.setTextColor(primaryDark.r, primaryDark.g, primaryDark.b);
         doc.setFontSize(8);
-        doc.text(`Generated by TourGether • Page ${i} of ${totalPages}`, pageWidth / 2, pageHeight - 6, { align: 'center' });
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Generated by TourGether • ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`, margin, pageHeight - 7);
+        doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin, pageHeight - 7, { align: 'right' });
       }
       
-      // Save the PDF using blob for better browser compatibility
+      // Save the PDF
       const fileName = `TourGether-${tripData.destination.replace(/[^a-zA-Z0-9]/g, '-')}-Itinerary.pdf`;
       const pdfBlob = doc.output('blob');
       const blobUrl = URL.createObjectURL(pdfBlob);
