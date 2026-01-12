@@ -1,8 +1,9 @@
+import { useState } from 'react';
 import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTripWizard } from '@/hooks/useTripWizard';
 import { WizardProgress } from './WizardProgress';
-import { DestinationStep } from './DestinationStep';
+import { DestinationStep, VisionDetectionResult } from './DestinationStep';
 import { DatesStep } from './DatesStep';
 import { BudgetStep } from './BudgetStep';
 import { PreferencesStep } from './PreferencesStep';
@@ -10,9 +11,11 @@ import { ReviewStep } from './ReviewStep';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { generateItinerary } from '@/services/itineraryService';
+import { TripType } from '@/types/trip';
 
 export const TripWizard = () => {
   const navigate = useNavigate();
+  const [visionData, setVisionData] = useState<VisionDetectionResult | null>(null);
   const {
     step,
     totalSteps,
@@ -26,6 +29,30 @@ export const TripWizard = () => {
     canProceed,
     getDaysCount,
   } = useTripWizard();
+
+  const handleVisionDetection = (data: VisionDetectionResult) => {
+    setVisionData(data);
+    
+    // Auto-update trip type based on vision detection
+    if (data.suggestions?.primary_trip_type) {
+      const tripType = data.suggestions.primary_trip_type as TripType;
+      if (['landmarks', 'historical_places', 'nature', 'entertainment'].includes(tripType)) {
+        updateTripData('tripType', tripType);
+      }
+    }
+
+    // Auto-update currency based on region
+    if (data.suggestions?.currency) {
+      updateTripData('currency', data.suggestions.currency);
+    }
+
+    // Adjust budget based on region modifier
+    if (data.suggestions?.budget_modifier) {
+      const modifier = data.suggestions.budget_modifier;
+      updateTripData('budgetMin', Math.round(tripData.budgetMin * modifier));
+      updateTripData('budgetMax', Math.round(tripData.budgetMax * modifier));
+    }
+  };
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -64,6 +91,7 @@ export const TripWizard = () => {
           <DestinationStep
             destination={tripData.destination}
             onDestinationChange={(val) => updateTripData('destination', val)}
+            onVisionDetection={handleVisionDetection}
           />
         );
       case 2:
