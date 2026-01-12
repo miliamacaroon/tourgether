@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Globe, Calendar, Wallet, Users, Download, Share2, Sparkles, Clock, Loader2 } from 'lucide-react';
+import { ArrowLeft, Globe, Calendar, Wallet, Users, Download, Share2, Sparkles, Clock, Loader2, MapPin, Star, Database, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import jsPDF from 'jspdf';
+import { AttractionData, RestaurantData } from '@/services/itineraryService';
 
 interface StoredTripData {
   destination: string;
@@ -22,16 +23,28 @@ interface StoredTripData {
   daysCount: number;
 }
 
+interface StoredSources {
+  databaseAttractions: number;
+  databaseRestaurants: number;
+  webSources: number;
+}
+
 const Itinerary = () => {
   const navigate = useNavigate();
   const [tripData, setTripData] = useState<StoredTripData | null>(null);
   const [itinerary, setItinerary] = useState<string>('');
+  const [attractions, setAttractions] = useState<AttractionData[]>([]);
+  const [restaurants, setRestaurants] = useState<RestaurantData[]>([]);
+  const [sources, setSources] = useState<StoredSources | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     const storedTripData = sessionStorage.getItem('tripData');
     const storedItinerary = sessionStorage.getItem('generatedItinerary');
+    const storedAttractions = sessionStorage.getItem('generatedAttractions');
+    const storedRestaurants = sessionStorage.getItem('generatedRestaurants');
+    const storedSources = sessionStorage.getItem('generatedSources');
     
     if (storedTripData) {
       setTripData(JSON.parse(storedTripData));
@@ -39,6 +52,18 @@ const Itinerary = () => {
     
     if (storedItinerary) {
       setItinerary(storedItinerary);
+    }
+
+    if (storedAttractions) {
+      setAttractions(JSON.parse(storedAttractions));
+    }
+
+    if (storedRestaurants) {
+      setRestaurants(JSON.parse(storedRestaurants));
+    }
+
+    if (storedSources) {
+      setSources(JSON.parse(storedSources));
     }
     
     if (!storedTripData || !storedItinerary) {
@@ -601,6 +626,150 @@ const Itinerary = () => {
           </div>
         </div>
       </section>
+
+      {/* RAG Sources Info */}
+      {sources && (sources.databaseAttractions > 0 || sources.databaseRestaurants > 0 || sources.webSources > 0) && (
+        <section className="py-4 border-b border-border bg-muted/30">
+          <div className="container max-w-6xl mx-auto px-4">
+            <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
+              <span className="text-muted-foreground font-medium">Powered by:</span>
+              {sources.databaseAttractions > 0 && (
+                <div className="flex items-center gap-2 bg-primary/10 px-3 py-1.5 rounded-full">
+                  <Database className="w-4 h-4 text-primary" />
+                  <span className="text-primary font-medium">{sources.databaseAttractions} Attractions</span>
+                </div>
+              )}
+              {sources.databaseRestaurants > 0 && (
+                <div className="flex items-center gap-2 bg-accent/10 px-3 py-1.5 rounded-full">
+                  <MapPin className="w-4 h-4 text-accent-foreground" />
+                  <span className="text-accent-foreground font-medium">{sources.databaseRestaurants} Restaurants</span>
+                </div>
+              )}
+              {sources.webSources > 0 && (
+                <div className="flex items-center gap-2 bg-muted px-3 py-1.5 rounded-full border border-border">
+                  <Search className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-muted-foreground font-medium">{sources.webSources} Web Sources</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Featured Attractions Gallery */}
+      {attractions.length > 0 && (
+        <section className="py-10 bg-muted/20">
+          <div className="container max-w-6xl mx-auto px-4">
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-4 border border-primary/20">
+                <MapPin className="w-5 h-5 text-primary" />
+                <span className="text-sm font-semibold text-primary">Featured Attractions</span>
+              </div>
+              <h2 className="text-2xl font-bold text-foreground">Places You'll Visit</h2>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {attractions.slice(0, 6).map((attraction) => (
+                <Card key={attraction.id} className="overflow-hidden group hover:shadow-xl transition-all duration-300 border border-border">
+                  {attraction.picture ? (
+                    <div className="aspect-video relative overflow-hidden">
+                      <img 
+                        src={attraction.picture} 
+                        alt={attraction.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/placeholder.svg';
+                        }}
+                      />
+                      {attraction.rating && (
+                        <div className="absolute top-3 right-3 flex items-center gap-1 bg-background/90 backdrop-blur-sm px-2 py-1 rounded-full">
+                          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                          <span className="text-sm font-semibold">{attraction.rating}</span>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="aspect-video bg-muted flex items-center justify-center">
+                      <MapPin className="w-12 h-12 text-muted-foreground/50" />
+                    </div>
+                  )}
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-foreground mb-2 line-clamp-1">{attraction.name}</h3>
+                    {attraction.description && (
+                      <p className="text-sm text-muted-foreground line-clamp-2">{attraction.description}</p>
+                    )}
+                    {attraction.categories && attraction.categories.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-3">
+                        {attraction.categories.slice(0, 3).map((cat, i) => (
+                          <span key={i} className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                            {cat}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Featured Restaurants */}
+      {restaurants.length > 0 && (
+        <section className="py-10 border-t border-border">
+          <div className="container max-w-6xl mx-auto px-4">
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center gap-2 bg-accent/10 px-4 py-2 rounded-full mb-4 border border-accent/20">
+                <span className="text-lg">🍽️</span>
+                <span className="text-sm font-semibold text-accent-foreground">Dining Recommendations</span>
+              </div>
+              <h2 className="text-2xl font-bold text-foreground">Where You'll Eat</h2>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {restaurants.slice(0, 6).map((restaurant) => (
+                <Card key={restaurant.id} className="overflow-hidden group hover:shadow-xl transition-all duration-300 border border-border">
+                  {restaurant.picture ? (
+                    <div className="aspect-video relative overflow-hidden">
+                      <img 
+                        src={restaurant.picture} 
+                        alt={restaurant.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/placeholder.svg';
+                        }}
+                      />
+                      {restaurant.rating && (
+                        <div className="absolute top-3 right-3 flex items-center gap-1 bg-background/90 backdrop-blur-sm px-2 py-1 rounded-full">
+                          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                          <span className="text-sm font-semibold">{restaurant.rating}</span>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="aspect-video bg-muted flex items-center justify-center">
+                      <span className="text-4xl">🍽️</span>
+                    </div>
+                  )}
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-foreground mb-2 line-clamp-1">{restaurant.name}</h3>
+                    {restaurant.cuisines && restaurant.cuisines.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {restaurant.cuisines.slice(0, 3).map((cuisine, i) => (
+                          <span key={i} className="text-xs bg-accent/10 text-accent-foreground px-2 py-0.5 rounded-full">
+                            {cuisine}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Itinerary Content */}
       <section className="py-12">

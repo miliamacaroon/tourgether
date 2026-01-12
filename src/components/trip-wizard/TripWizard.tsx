@@ -68,12 +68,21 @@ export const TripWizard = () => {
     sessionStorage.setItem('tripData', JSON.stringify(storedData));
     
     try {
-      toast.info('🤖 AI is crafting your perfect itinerary...', { duration: 10000 });
+      toast.info('🤖 AI is crafting your perfect itinerary using RAG...', { duration: 15000 });
       
       const result = await generateItinerary(storedData);
       
-      // Store the generated itinerary
+      // Store the generated itinerary and attractions/restaurants
       sessionStorage.setItem('generatedItinerary', result.itinerary);
+      if (result.attractions) {
+        sessionStorage.setItem('generatedAttractions', JSON.stringify(result.attractions));
+      }
+      if (result.restaurants) {
+        sessionStorage.setItem('generatedRestaurants', JSON.stringify(result.restaurants));
+      }
+      if (result.sources) {
+        sessionStorage.setItem('generatedSources', JSON.stringify(result.sources));
+      }
       
       toast.success('✨ Your itinerary is ready!');
       navigate('/itinerary');
