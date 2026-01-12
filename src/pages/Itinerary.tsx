@@ -69,11 +69,17 @@ const Itinerary = () => {
       const contentWidth = pageWidth - margin * 2;
       let yPosition = margin;
 
-      // Colors - Orchid theme
+      // Colors - Orchid theme with complementary colors
       const primary = { r: 168, g: 85, b: 247 };      // Purple-500
       const primaryDark = { r: 126, g: 34, b: 206 };  // Purple-700
       const primaryLight = { r: 243, g: 232, b: 255 }; // Purple-50
       const accent = { r: 236, g: 72, b: 153 };        // Pink-500
+      const teal = { r: 20, g: 184, b: 166 };          // Teal-500
+      const tealDark = { r: 15, g: 118, b: 110 };      // Teal-700
+      const tealLight = { r: 204, g: 251, b: 241 };    // Teal-50
+      const gold = { r: 234, g: 179, b: 8 };           // Amber/Gold
+      const goldDark = { r: 161, g: 98, b: 7 };        // Amber-700
+      const goldLight = { r: 254, g: 249, b: 195 };    // Amber-50
       const darkGray = { r: 30, g: 30, b: 46 };
       const mediumGray = { r: 100, g: 100, b: 120 };
       const lightGray = { r: 248, g: 245, b: 255 };
@@ -100,9 +106,13 @@ const Itinerary = () => {
       doc.setFillColor(primary.r, primary.g, primary.b);
       doc.rect(0, 0, pageWidth, 80, 'F');
       
-      // Decorative diagonal stripe
-      doc.setFillColor(primaryDark.r, primaryDark.g, primaryDark.b);
+      // Decorative diagonal stripe with teal
+      doc.setFillColor(teal.r, teal.g, teal.b);
       doc.triangle(pageWidth - 60, 0, pageWidth, 0, pageWidth, 60, 'F');
+      
+      // Additional accent stripe
+      doc.setFillColor(gold.r, gold.g, gold.b);
+      doc.triangle(0, 60, 0, 80, 40, 80, 'F');
       
       // Brand name
       doc.setTextColor(255, 255, 255);
@@ -127,21 +137,21 @@ const Itinerary = () => {
       
       yPosition = 100;
       
-      // Trip Details Card
+      // Trip Details Card with teal accent
       doc.setFillColor(255, 255, 255);
-      doc.setDrawColor(primary.r, primary.g, primary.b);
+      doc.setDrawColor(teal.r, teal.g, teal.b);
       doc.setLineWidth(1);
       doc.roundedRect(margin, yPosition, contentWidth, 70, 6, 6, 'FD');
       
-      // Card header
-      doc.setFillColor(primaryLight.r, primaryLight.g, primaryLight.b);
+      // Card header with teal
+      doc.setFillColor(tealLight.r, tealLight.g, tealLight.b);
       doc.roundedRect(margin, yPosition, contentWidth, 20, 6, 6, 'F');
       doc.rect(margin, yPosition + 14, contentWidth, 6, 'F');
       
-      doc.setTextColor(primaryDark.r, primaryDark.g, primaryDark.b);
+      doc.setTextColor(tealDark.r, tealDark.g, tealDark.b);
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
-      doc.text('TRIP DETAILS', margin + 10, yPosition + 13);
+      doc.text('📅 TRIP DETAILS', margin + 10, yPosition + 13);
       
       // Grid layout for details
       const detailsY = yPosition + 32;
@@ -171,18 +181,19 @@ const Itinerary = () => {
       
       yPosition += 85;
       
-      // Preferences Card
+      // Preferences Card with gold accent
       doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(gold.r, gold.g, gold.b);
       doc.roundedRect(margin, yPosition, contentWidth, 45, 6, 6, 'FD');
       
-      doc.setFillColor(primaryLight.r, primaryLight.g, primaryLight.b);
+      doc.setFillColor(goldLight.r, goldLight.g, goldLight.b);
       doc.roundedRect(margin, yPosition, contentWidth, 20, 6, 6, 'F');
       doc.rect(margin, yPosition + 14, contentWidth, 6, 'F');
       
-      doc.setTextColor(primaryDark.r, primaryDark.g, primaryDark.b);
+      doc.setTextColor(goldDark.r, goldDark.g, goldDark.b);
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
-      doc.text('PREFERENCES', margin + 10, yPosition + 13);
+      doc.text('🎯 PREFERENCES', margin + 10, yPosition + 13);
       
       const prefsY = yPosition + 32;
       const prefColWidth = contentWidth / 3;
@@ -222,7 +233,7 @@ const Itinerary = () => {
       doc.addPage();
       yPosition = margin;
       
-      // Section Header
+      // Section Header with gradient effect
       doc.setFillColor(primary.r, primary.g, primary.b);
       doc.roundedRect(margin, yPosition, contentWidth, 18, 4, 4, 'F');
       doc.setTextColor(255, 255, 255);
@@ -234,6 +245,7 @@ const Itinerary = () => {
       
       // Parse and render markdown content
       const lines = itinerary.split('\n');
+      let listItemIndex = 0;
       
       for (const line of lines) {
         const trimmedLine = line.trim();
@@ -242,23 +254,28 @@ const Itinerary = () => {
           continue;
         }
         
-        // Day headers (## Day X)
+        // Day headers (## Day X) - alternating colors
         if (trimmedLine.startsWith('## ')) {
           checkPageBreak(35);
           yPosition += 10;
           
           const dayMatch = trimmedLine.match(/Day (\d+)/);
           const dayNum = dayMatch ? dayMatch[1] : '•';
+          const dayNumber = dayMatch ? parseInt(dayMatch[1]) : 1;
           const dayTitle = trimmedLine.replace('## ', '');
+          const isEven = dayNumber % 2 === 0;
           
-          // Gradient-style day badge
-          doc.setFillColor(primary.r, primary.g, primary.b);
+          // Alternating day badge colors (pink/purple vs teal)
+          const badgeColor = isEven ? teal : primary;
+          const badgeDark = isEven ? tealDark : primaryDark;
+          
+          doc.setFillColor(badgeColor.r, badgeColor.g, badgeColor.b);
           doc.roundedRect(margin, yPosition - 5, contentWidth, 22, 4, 4, 'F');
           
           // Day number circle
           doc.setFillColor(255, 255, 255);
           doc.circle(margin + 15, yPosition + 6, 10, 'F');
-          doc.setTextColor(primary.r, primary.g, primary.b);
+          doc.setTextColor(badgeDark.r, badgeDark.g, badgeDark.b);
           doc.setFontSize(12);
           doc.setFont('helvetica', 'bold');
           doc.text(dayNum, margin + 15, yPosition + 10, { align: 'center' });
@@ -270,28 +287,51 @@ const Itinerary = () => {
           
           yPosition += 28;
         }
-        // Time of day headers (### Morning, etc)
+        // Time of day headers (### Morning, etc) - color-coded by time
         else if (trimmedLine.startsWith('### ')) {
           checkPageBreak(20);
           yPosition += 8;
           
           const timeText = trimmedLine.replace('### ', '');
-          const icon = timeText.toLowerCase().includes('morning') ? '🌅' :
-                      timeText.toLowerCase().includes('afternoon') ? '☀️' :
-                      timeText.toLowerCase().includes('evening') ? '🌆' :
-                      timeText.toLowerCase().includes('night') ? '🌙' : '📍';
+          const isMorning = timeText.toLowerCase().includes('morning');
+          const isAfternoon = timeText.toLowerCase().includes('afternoon');
+          const isEvening = timeText.toLowerCase().includes('evening') || timeText.toLowerCase().includes('night');
           
-          // Pill-shaped time badge
-          doc.setFillColor(primaryLight.r, primaryLight.g, primaryLight.b);
-          doc.setDrawColor(primary.r, primary.g, primary.b);
-          doc.setLineWidth(0.5);
-          const pillWidth = doc.getTextWidth(timeText) + 25;
+          const icon = isMorning ? '🌅' :
+                      isAfternoon ? '☀️' :
+                      isEvening ? '🌆' : '📍';
+          
+          // Time-based colors
+          let bgColor, borderColor, textColor;
+          if (isMorning) {
+            bgColor = goldLight;
+            borderColor = gold;
+            textColor = goldDark;
+          } else if (isAfternoon) {
+            bgColor = tealLight;
+            borderColor = teal;
+            textColor = tealDark;
+          } else {
+            bgColor = primaryLight;
+            borderColor = primary;
+            textColor = primaryDark;
+          }
+          
+          // Pill-shaped time badge with dynamic colors
+          doc.setFillColor(bgColor.r, bgColor.g, bgColor.b);
+          doc.setDrawColor(borderColor.r, borderColor.g, borderColor.b);
+          doc.setLineWidth(0.8);
+          const pillWidth = doc.getTextWidth(timeText) + 30;
           doc.roundedRect(margin + 20, yPosition - 5, pillWidth, 14, 5, 5, 'FD');
           
-          doc.setTextColor(primaryDark.r, primaryDark.g, primaryDark.b);
+          // Small colored dot
+          doc.setFillColor(borderColor.r, borderColor.g, borderColor.b);
+          doc.circle(margin + 28, yPosition + 2, 2, 'F');
+          
+          doc.setTextColor(textColor.r, textColor.g, textColor.b);
           doc.setFontSize(10);
           doc.setFont('helvetica', 'bold');
-          doc.text(`${icon} ${timeText}`, margin + 28, yPosition + 4);
+          doc.text(`${icon} ${timeText}`, margin + 34, yPosition + 4);
           
           yPosition += 18;
         }
@@ -306,21 +346,31 @@ const Itinerary = () => {
           doc.text(splitText, margin + 25, yPosition);
           yPosition += splitText.length * 6 + 5;
         }
-        // List items
+        // List items - cycling colors
         else if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ')) {
           checkPageBreak(18);
           
+          // Cycling colors for list items
+          const colors = [primary, teal, gold];
+          const bulletColor = colors[listItemIndex % 3];
+          listItemIndex++;
+          
+          // Colored left border line
+          doc.setDrawColor(bulletColor.r, bulletColor.g, bulletColor.b);
+          doc.setLineWidth(2);
+          doc.line(margin + 24, yPosition - 4, margin + 24, yPosition + 8);
+          
           // Colored bullet
-          doc.setFillColor(primary.r, primary.g, primary.b);
-          doc.circle(margin + 28, yPosition - 1, 2, 'F');
+          doc.setFillColor(bulletColor.r, bulletColor.g, bulletColor.b);
+          doc.circle(margin + 32, yPosition - 1, 2, 'F');
           
           doc.setTextColor(darkGray.r, darkGray.g, darkGray.b);
           doc.setFontSize(10);
           doc.setFont('helvetica', 'normal');
           const cleanText = trimmedLine.replace(/^[-*]\s*/, '').replace(/\*\*/g, '').replace(/\*/g, '');
-          const splitText = doc.splitTextToSize(cleanText, contentWidth - 50);
-          doc.text(splitText, margin + 36, yPosition);
-          yPosition += splitText.length * 6 + 5;
+          const splitText = doc.splitTextToSize(cleanText, contentWidth - 55);
+          doc.text(splitText, margin + 40, yPosition);
+          yPosition += splitText.length * 6 + 6;
         }
         // Regular paragraphs
         else if (!trimmedLine.startsWith('#')) {
