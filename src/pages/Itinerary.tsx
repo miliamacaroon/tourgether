@@ -782,10 +782,17 @@ const Itinerary = () => {
                 components={{
                   h2: ({ children }) => {
                     const dayNum = String(children).match(/Day (\d+)/)?.[1];
+                    const dayIndex = dayNum ? parseInt(dayNum) - 1 : 0;
+                    // Get attractions for this day (distribute evenly across days)
+                    const attractionsPerDay = Math.ceil(attractions.length / (tripData?.daysCount || 1));
+                    const dayAttractions = attractions.slice(
+                      dayIndex * attractionsPerDay,
+                      (dayIndex + 1) * attractionsPerDay
+                    ).slice(0, 3); // Max 3 attractions per day
                     
                     return (
                       <div className="mt-10 first:mt-0 mb-6">
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 mb-4">
                           <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg shrink-0 shadow-lg">
                             {dayNum || '📍'}
                           </div>
@@ -794,6 +801,43 @@ const Itinerary = () => {
                             <div className="h-1 w-20 bg-primary/30 rounded-full mt-2"></div>
                           </div>
                         </div>
+                        
+                        {/* Day Attractions Gallery */}
+                        {dayAttractions.length > 0 && (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6 p-4 bg-muted/30 rounded-xl border border-border/50">
+                            {dayAttractions.map((attraction) => (
+                              <div key={attraction.id} className="group relative overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                                {attraction.picture ? (
+                                  <div className="aspect-[4/3] relative">
+                                    <img 
+                                      src={attraction.picture} 
+                                      alt={attraction.name}
+                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                      onError={(e) => {
+                                        (e.target as HTMLImageElement).src = '/placeholder.svg';
+                                      }}
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                                    <div className="absolute bottom-0 left-0 right-0 p-3">
+                                      <p className="text-white font-semibold text-sm line-clamp-1">{attraction.name}</p>
+                                      {attraction.rating && (
+                                        <div className="flex items-center gap-1 mt-1">
+                                          <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                                          <span className="text-white/90 text-xs">{attraction.rating}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="aspect-[4/3] bg-muted flex flex-col items-center justify-center p-3">
+                                    <MapPin className="w-8 h-8 text-muted-foreground/50 mb-2" />
+                                    <p className="text-muted-foreground text-sm text-center line-clamp-2">{attraction.name}</p>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     );
                   },
