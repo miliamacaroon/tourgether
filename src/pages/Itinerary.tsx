@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Globe, Calendar, Wallet, Users, Download, Share2, Sparkles, Clock, Loader2, MapPin, Star, Database, Search, Compass, Plane } from 'lucide-react';
+import { ArrowLeft, Globe, Calendar, Wallet, Users, Download, Share2, Sparkles, Clock, Loader2, MapPin, Star, Database, Search, Compass, Plane, Map } from 'lucide-react';
 import ItineraryContent from '@/components/itinerary/ItineraryContent';
+import ItineraryMap from '@/components/itinerary/ItineraryMap';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
@@ -37,6 +38,8 @@ const Itinerary = () => {
   const [sources, setSources] = useState<StoredSources | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
+  const [showMap, setShowMap] = useState(true);
+  const itineraryContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const storedTripData = sessionStorage.getItem('tripData');
@@ -72,6 +75,20 @@ const Itinerary = () => {
     
     setIsLoading(false);
   }, [navigate]);
+
+  // Handle marker click - scroll to the attraction/restaurant in the itinerary
+  const handleMarkerClick = useCallback((markerId: number, type: 'attraction' | 'restaurant') => {
+    // Find the element by data attribute and scroll to it
+    const element = document.querySelector(`[data-marker-id="${type}-${markerId}"]`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Add a highlight effect
+      element.classList.add('ring-4', 'ring-primary', 'ring-offset-2');
+      setTimeout(() => {
+        element.classList.remove('ring-4', 'ring-primary', 'ring-offset-2');
+      }, 2000);
+    }
+  }, []);
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('en-US', {
@@ -140,20 +157,20 @@ const Itinerary = () => {
       };
 
       // Pre-load all images
-      const attractionImages: Map<number, string> = new Map();
-      const restaurantImages: Map<number, string> = new Map();
+      const attractionImagesMap: globalThis.Map<number, string> = new globalThis.Map();
+      const restaurantImagesMap: globalThis.Map<number, string> = new globalThis.Map();
       
       await Promise.all([
         ...attractions.map(async (attraction) => {
           if (attraction.picture) {
             const base64 = await loadImageAsBase64(attraction.picture);
-            if (base64) attractionImages.set(attraction.id, base64);
+            if (base64) attractionImagesMap.set(attraction.id, base64);
           }
         }),
         ...restaurants.map(async (restaurant) => {
           if (restaurant.picture) {
             const base64 = await loadImageAsBase64(restaurant.picture);
-            if (base64) restaurantImages.set(restaurant.id, base64);
+            if (base64) restaurantImagesMap.set(restaurant.id, base64);
           }
         })
       ]);
@@ -543,7 +560,7 @@ const Itinerary = () => {
             // Image area (left side of card)
             const imgWidth = 35;
             const imgHeight = cardHeight - 6;
-            const imageBase64 = attractionImages.get(attraction.id);
+            const imageBase64 = attractionImagesMap.get(attraction.id);
             
             if (imageBase64) {
               try {
@@ -652,7 +669,7 @@ const Itinerary = () => {
             // Image area (left side of card)
             const imgWidth = 35;
             const imgHeight = cardHeight - 6;
-            const imageBase64 = restaurantImages.get(restaurant.id);
+            const imageBase64 = restaurantImagesMap.get(restaurant.id);
             
             if (imageBase64) {
               try {
@@ -1067,13 +1084,13 @@ const Itinerary = () => {
         </section>
       )}
 
-      {/* Itinerary Content */}
+      {/* Itinerary Content with Map */}
       <section className="py-16 relative overflow-hidden">
         {/* Background decorations */}
         <div className="absolute top-20 right-0 w-96 h-96 bg-gradient-to-bl from-primary/10 to-transparent rounded-full blur-3xl" />
         <div className="absolute bottom-40 left-0 w-80 h-80 bg-gradient-to-tr from-accent-foreground/10 to-transparent rounded-full blur-3xl" />
         
-        <div className="container max-w-4xl mx-auto px-4 relative z-10">
+        <div className="container max-w-7xl mx-auto px-4 relative z-10">
           {/* Section header */}
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-3 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 backdrop-blur-sm px-6 py-3 rounded-full mb-6 border border-primary/30 shadow-lg">
@@ -1092,16 +1109,44 @@ const Itinerary = () => {
             <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
               Every moment of your {tripData.daysCount}-day journey, carefully crafted with AI precision
             </p>
+            
+            {/* Map toggle button */}
+            <Button
+              variant={showMap ? "default" : "outline"}
+              onClick={() => setShowMap(!showMap)}
+              className="mt-6 gap-2"
+            >
+              <Map className="w-4 h-4" />
+              {showMap ? 'Hide Map' : 'Show Map'}
+            </Button>
           </div>
           
-          {/* Day cards container */}
-          <div className="space-y-8">
-            <ItineraryContent 
-              itinerary={itinerary} 
-              attractions={attractions}
-              restaurants={restaurants}
-              daysCount={tripData.daysCount}
-            />
+          {/* Two-column layout: Itinerary + Map */}
+          <div className={`grid gap-8 ${showMap ? 'lg:grid-cols-[1fr,400px]' : 'max-w-4xl mx-auto'}`}>
+            {/* Day cards container */}
+            <div ref={itineraryContentRef} className="space-y-8">
+              <ItineraryContent 
+                itinerary={itinerary} 
+                attractions={attractions}
+                restaurants={restaurants}
+                daysCount={tripData.daysCount}
+              />
+            </div>
+            
+            {/* Sticky Map */}
+            {showMap && (
+              <div className="hidden lg:block">
+                <div className="sticky top-24 h-[calc(100vh-8rem)]">
+                  <ItineraryMap
+                    attractions={attractions}
+                    restaurants={restaurants}
+                    daysCount={tripData.daysCount}
+                    destination={tripData.destination}
+                    onMarkerClick={handleMarkerClick}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>

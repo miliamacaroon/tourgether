@@ -101,7 +101,8 @@ const DayCard = ({ dayNumber, title, attractions, restaurants, children, totalDa
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {attractions.map((attraction, index) => (
                 <div 
-                  key={attraction.id} 
+                  key={attraction.id}
+                  data-marker-id={`attraction-${attraction.id}`}
                   className="group/card relative overflow-hidden rounded-xl bg-card border border-border/50 shadow-sm hover:shadow-lg hover:border-primary/30 transition-all duration-300"
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
@@ -174,7 +175,8 @@ const DayCard = ({ dayNumber, title, attractions, restaurants, children, totalDa
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {restaurants.map((restaurant, index) => (
                 <div 
-                  key={restaurant.id} 
+                  key={restaurant.id}
+                  data-marker-id={`restaurant-${restaurant.id}`}
                   className="group/card relative overflow-hidden rounded-xl bg-card border border-border/50 shadow-sm hover:shadow-lg hover:border-accent/30 transition-all duration-300"
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
