@@ -168,11 +168,11 @@ serve(async (req) => {
             try {
               const itemId = item.ID || item.id;
               
-              // Use existing embedding from attraction_embeddings if available
-              let embedding = embeddingsMap.get(itemId) || null;
+              // Skip external embeddings as they may have different dimensions (3072 vs 768)
+              // Generate new embeddings in 768 dimensions if requested
+              let embedding: string | null = null;
               
-              // Only generate new embedding if not found and generateEmbeddings is true
-              if (!embedding && generateEmbeddings) {
+              if (generateEmbeddings) {
                 const searchText = createSearchableText(item, "attraction");
                 const newEmbedding = await generateEmbedding(searchText, LOVABLE_API_KEY);
                 if (newEmbedding) {
@@ -269,12 +269,20 @@ serve(async (req) => {
                 : (reviewTags || []);
 
               // Map from external UPPERCASE columns to local lowercase
+              const destinationValue = item.DESTINATION || item.destination || 'Unknown';
+              
+              // Skip restaurants without a proper destination
+              if (destinationValue === 'Unknown' || !destinationValue) {
+                console.log(`Skipping restaurant with no destination: ${item.NAME || item.name}`);
+                return null;
+              }
+              
               return {
                 id: item.ID || item.id,
-                name: item.NAME || item.name,
+                name: item.NAME || item.name || 'Unknown Restaurant',
                 picture: item.PICTURE || item.picture,
                 rating: item.RATING || item.rating,
-                destination: item.DESTINATION || item.destination,
+                destination: destinationValue,
                 description: item.DESCRIPTION || item.description,
                 cuisines: cuisinesArray,
                 dishes: dishesArray,
