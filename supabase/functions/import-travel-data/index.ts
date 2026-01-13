@@ -168,22 +168,33 @@ serve(async (req) => {
                 embedding = await generateEmbedding(searchText, LOVABLE_API_KEY);
               }
 
-              // Handle both lowercase and uppercase column names
+              // Parse REVIEW_TAGS and CATEGORIES from text to arrays if needed
+              const reviewTags = item.REVIEW_TAGS || item.review_tags;
+              const categories = item.CATEGORIES || item.categories;
+              const reviewTagsArray = typeof reviewTags === 'string' 
+                ? reviewTags.split(',').map((s: string) => s.trim()).filter(Boolean)
+                : (reviewTags || []);
+              const categoriesArray = typeof categories === 'string'
+                ? categories.split(',').map((s: string) => s.trim()).filter(Boolean)
+                : (categories || []);
+
+              // Map from external UPPERCASE columns to local lowercase
               return {
-                id: getField(item, 'id') || getField(item, 'ID'),
-                name: getField(item, 'name') || getField(item, 'NAME'),
-                tripadvisor_url: getField(item, 'tripadvisor_url') || getField(item, 'TRIPADVISOR_URL'),
-                attraction_url: getField(item, 'attraction_url') || getField(item, 'ATTRACTION_URL'),
-                picture: getField(item, 'picture') || getField(item, 'PICTURE'),
-                rating: getField(item, 'rating') || getField(item, 'RATING'),
-                destination: getField(item, 'destination') || getField(item, 'DESTINATION'),
-                description: getField(item, 'description') || getField(item, 'DESCRIPTION'),
-                latitude: getField(item, 'latitude') || getField(item, 'LATITUDE'),
-                longitude: getField(item, 'longitude') || getField(item, 'LONGITUDE'),
-                general_location: getField(item, 'general_location') || getField(item, 'GENERAL_LOCATION'),
-                number_of_reviews: getField(item, 'number_of_reviews') || getField(item, 'NUMBER_OF_REVIEWS') || 0,
-                review_tags: getField(item, 'review_tags') || getField(item, 'REVIEW_TAGS') || [],
-                categories: getField(item, 'categories') || getField(item, 'CATEGORIES') || [],
+                id: item.ID || item.id,
+                name: item.NAME || item.name,
+                picture: item.PICTURE || item.picture,
+                rating: item.RATING || item.rating,
+                destination: item.DESTINATION || item.destination,
+                description: item.DESCRIPTION || item.description,
+                review_tags: reviewTagsArray,
+                categories: categoriesArray,
+                // Set defaults for columns that don't exist in external DB
+                tripadvisor_url: null,
+                attraction_url: null,
+                latitude: null,
+                longitude: null,
+                general_location: null,
+                number_of_reviews: 0,
                 embedding: embedding ? `[${embedding.join(",")}]` : null,
               };
             } catch (error) {
@@ -231,29 +242,45 @@ serve(async (req) => {
                 embedding = await generateEmbedding(searchText, LOVABLE_API_KEY);
               }
 
+              // Parse cuisines, dishes, review_tags from text to arrays if needed
+              const cuisines = item.CUISINES || item.cuisines;
+              const dishes = item.DISHES || item.dishes;
+              const reviewTags = item.REVIEW_TAGS || item.review_tags;
+              const cuisinesArray = typeof cuisines === 'string' 
+                ? cuisines.split(',').map((s: string) => s.trim()).filter(Boolean)
+                : (cuisines || []);
+              const dishesArray = typeof dishes === 'string'
+                ? dishes.split(',').map((s: string) => s.trim()).filter(Boolean)
+                : (dishes || []);
+              const reviewTagsArray = typeof reviewTags === 'string'
+                ? reviewTags.split(',').map((s: string) => s.trim()).filter(Boolean)
+                : (reviewTags || []);
+
+              // Map from external UPPERCASE columns to local lowercase
               return {
-                id: item.id,
-                name: item.name,
-                tripadvisor_url: item.tripadvisor_url,
-                restaurant_url: item.restaurant_url,
-                picture: item.picture,
-                rating: item.rating,
-                destination: item.destination,
-                description: item.description,
-                latitude: item.latitude,
-                longitude: item.longitude,
-                general_location: item.general_location,
-                number_of_reviews: item.number_of_reviews || 0,
-                review_tags: item.review_tags || [],
-                cuisines: item.cuisines || [],
-                dishes: item.dishes || [],
-                meal_types: item.meal_types || [],
-                features: item.features || [],
-                hours: item.hours || null,
+                id: item.ID || item.id,
+                name: item.NAME || item.name,
+                picture: item.PICTURE || item.picture,
+                rating: item.RATING || item.rating,
+                destination: item.DESTINATION || item.destination,
+                description: item.DESCRIPTION || item.description,
+                cuisines: cuisinesArray,
+                dishes: dishesArray,
+                review_tags: reviewTagsArray,
+                // Set defaults for columns that don't exist in external DB
+                tripadvisor_url: null,
+                restaurant_url: null,
+                latitude: null,
+                longitude: null,
+                general_location: null,
+                number_of_reviews: 0,
+                meal_types: [],
+                features: [],
+                hours: null,
                 embedding: embedding ? `[${embedding.join(",")}]` : null,
               };
             } catch (error) {
-              console.error(`Error processing restaurant ${item.id}:`, error);
+              console.error(`Error processing restaurant:`, error);
               return null;
             }
           })
