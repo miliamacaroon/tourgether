@@ -92,9 +92,9 @@ serve(async (req) => {
     console.log("Starting import from external Supabase...");
     console.log("Destination filter:", destination || "all");
 
-    // Fetch attractions from external Supabase
+    // Fetch attractions from attraction_embeddings table
     let attractionsQuery = externalSupabase
-      .from("attractions")
+      .from("attraction_embeddings")
       .select("*");
     
     if (destination) {
@@ -104,47 +104,29 @@ serve(async (req) => {
     const { data: externalAttractions, error: attractionsError } = await attractionsQuery.limit(100);
 
     if (attractionsError) {
-      console.error("Error fetching attractions:", attractionsError);
-      // Continue without throwing - just log and skip attractions
+      console.error("Error fetching from attraction_embeddings:", attractionsError);
       console.log("Continuing without attractions...");
     }
 
-    console.log(`Fetched ${externalAttractions?.length || 0} attractions from external Supabase`);
+    console.log(`Fetched ${externalAttractions?.length || 0} attractions from attraction_embeddings`);
     if (externalAttractions && externalAttractions.length > 0) {
       console.log("Sample attraction keys:", Object.keys(externalAttractions[0]));
       console.log("Sample attraction data:", JSON.stringify(externalAttractions[0]).slice(0, 500));
     }
 
-    // Try restaurant_embeddings first, fall back to restaurants
-    let externalRestaurants: any[] = [];
-    let restaurantsError: any = null;
-    
-    // Try restaurant_embeddings table first
-    const { data: restaurantEmbeddings, error: embeddingsError } = await externalSupabase
-      .from("restaurant_embeddings")
+    // Fetch restaurants from restaurants table
+    const { data: externalRestaurants, error: restaurantsError } = await externalSupabase
+      .from("restaurants")
       .select("*")
-      .limit(50);
-    
-    if (!embeddingsError && restaurantEmbeddings && restaurantEmbeddings.length > 0) {
-      console.log("Found restaurant_embeddings table");
-      externalRestaurants = restaurantEmbeddings;
-    } else {
-      // Fall back to restaurants table
-      const { data: restaurants, error: restError } = await externalSupabase
-        .from("restaurants")
-        .select("*")
-        .limit(50);
-      
-      if (restError) {
-        console.log("No restaurants table found either, skipping restaurants");
-        restaurantsError = restError;
-      } else {
-        externalRestaurants = restaurants || [];
-      }
+      .limit(100);
+
+    if (restaurantsError) {
+      console.error("Error fetching from restaurants:", restaurantsError);
+      console.log("Continuing without restaurants...");
     }
 
-    console.log(`Fetched ${externalRestaurants?.length || 0} restaurants from external Supabase`);
-    if (externalRestaurants?.length > 0) {
+    console.log(`Fetched ${externalRestaurants?.length || 0} restaurants from restaurants table`);
+    if (externalRestaurants && externalRestaurants.length > 0) {
       console.log("Sample restaurant keys:", Object.keys(externalRestaurants[0]));
     }
 
