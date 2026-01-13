@@ -269,13 +269,8 @@ serve(async (req) => {
                 : (reviewTags || []);
 
               // Map from external UPPERCASE columns to local lowercase
-              const destinationValue = item.DESTINATION || item.destination || 'Unknown';
-              
-              // Skip restaurants without a proper destination
-              if (destinationValue === 'Unknown' || !destinationValue) {
-                console.log(`Skipping restaurant with no destination: ${item.NAME || item.name}`);
-                return null;
-              }
+              // Use NAME column as destination per user request
+              const destinationValue = item.NAME || item.name || 'Unknown';
               
               return {
                 id: item.ID || item.id,
