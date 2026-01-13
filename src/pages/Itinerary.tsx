@@ -467,9 +467,212 @@ const Itinerary = () => {
       doc.setFont('helvetica', 'bold');
       doc.text(`Total Budget Range: ${tripData.currency} ${tripData.budgetMin.toLocaleString()} - ${tripData.budgetMax.toLocaleString()} (Flexible based on choices)`, margin + 5, yPosition + 8);
       
+      // ==================== FEATURED ATTRACTIONS ====================
+      if (attractions.length > 0) {
+        doc.addPage();
+        yPosition = margin;
+        
+        // Section header
+        doc.setFillColor(primary.r, primary.g, primary.b);
+        doc.roundedRect(margin, yPosition, contentWidth, 14, 3, 3, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Featured Attractions', margin + 5, yPosition + 10);
+        
+        yPosition += 22;
+        
+        // Display attractions with images (2 columns)
+        const attractionRows = Math.ceil(attractions.length / 2);
+        const cardWidth = (contentWidth - 10) / 2;
+        const cardHeight = 45;
+        
+        for (let row = 0; row < attractionRows; row++) {
+          checkPageBreak(cardHeight + 10);
+          
+          for (let col = 0; col < 2; col++) {
+            const idx = row * 2 + col;
+            if (idx >= attractions.length) break;
+            
+            const attraction = attractions[idx];
+            const xPos = margin + col * (cardWidth + 10);
+            
+            // Card background
+            doc.setFillColor(lightGray.r, lightGray.g, lightGray.b);
+            doc.roundedRect(xPos, yPosition, cardWidth, cardHeight, 3, 3, 'F');
+            
+            // Card border
+            doc.setDrawColor(primary.r, primary.g, primary.b);
+            doc.setLineWidth(0.5);
+            doc.roundedRect(xPos, yPosition, cardWidth, cardHeight, 3, 3, 'S');
+            
+            // Image placeholder box (left side of card)
+            const imgWidth = 35;
+            const imgHeight = cardHeight - 6;
+            doc.setFillColor(primaryLight.r, primaryLight.g, primaryLight.b);
+            doc.roundedRect(xPos + 3, yPosition + 3, imgWidth, imgHeight, 2, 2, 'F');
+            
+            // Image icon placeholder
+            doc.setTextColor(primary.r, primary.g, primary.b);
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            if (attraction.picture) {
+              doc.text('IMAGE', xPos + 12, yPosition + imgHeight / 2 + 3);
+              doc.setFontSize(6);
+              doc.text('(View in app)', xPos + 8, yPosition + imgHeight / 2 + 9);
+            } else {
+              doc.text('No Image', xPos + 10, yPosition + imgHeight / 2 + 3);
+            }
+            
+            // Attraction name
+            const textXPos = xPos + imgWidth + 8;
+            const textWidth = cardWidth - imgWidth - 12;
+            
+            doc.setTextColor(darkGray.r, darkGray.g, darkGray.b);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            const nameLines = doc.splitTextToSize(attraction.name, textWidth);
+            doc.text(nameLines.slice(0, 2), textXPos, yPosition + 10);
+            
+            // Rating
+            if (attraction.rating) {
+              const ratingY = yPosition + (nameLines.length > 1 ? 22 : 18);
+              doc.setFillColor(gold.r, gold.g, gold.b);
+              doc.circle(textXPos + 3, ratingY - 1, 3, 'F');
+              doc.setTextColor(255, 255, 255);
+              doc.setFontSize(6);
+              doc.setFont('helvetica', 'bold');
+              doc.text('★', textXPos + 1.5, ratingY + 1);
+              
+              doc.setTextColor(goldDark.r, goldDark.g, goldDark.b);
+              doc.setFontSize(8);
+              doc.text(`${attraction.rating}`, textXPos + 9, ratingY);
+            }
+            
+            // Description snippet
+            if (attraction.description) {
+              const descY = attraction.rating ? yPosition + 30 : yPosition + 22;
+              doc.setTextColor(mediumGray.r, mediumGray.g, mediumGray.b);
+              doc.setFontSize(7);
+              doc.setFont('helvetica', 'normal');
+              const descLines = doc.splitTextToSize(stripEmojis(attraction.description), textWidth);
+              doc.text(descLines.slice(0, 2), textXPos, descY);
+            }
+          }
+          
+          yPosition += cardHeight + 8;
+        }
+      }
+      
+      // ==================== DINING RECOMMENDATIONS ====================
+      if (restaurants.length > 0) {
+        checkPageBreak(80);
+        if (yPosition > margin + 20) {
+          yPosition += 10;
+        }
+        
+        // Check if we need a new page
+        if (yPosition > pageHeight - 100) {
+          doc.addPage();
+          yPosition = margin;
+        }
+        
+        // Section header
+        doc.setFillColor(accent.r, accent.g, accent.b);
+        doc.roundedRect(margin, yPosition, contentWidth, 14, 3, 3, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Dining Recommendations', margin + 5, yPosition + 10);
+        
+        yPosition += 22;
+        
+        // Display restaurants with images (2 columns)
+        const restaurantRows = Math.ceil(restaurants.length / 2);
+        const cardWidth = (contentWidth - 10) / 2;
+        const cardHeight = 45;
+        
+        for (let row = 0; row < restaurantRows; row++) {
+          checkPageBreak(cardHeight + 10);
+          
+          for (let col = 0; col < 2; col++) {
+            const idx = row * 2 + col;
+            if (idx >= restaurants.length) break;
+            
+            const restaurant = restaurants[idx];
+            const xPos = margin + col * (cardWidth + 10);
+            
+            // Card background
+            doc.setFillColor(lightGray.r, lightGray.g, lightGray.b);
+            doc.roundedRect(xPos, yPosition, cardWidth, cardHeight, 3, 3, 'F');
+            
+            // Card border
+            doc.setDrawColor(accent.r, accent.g, accent.b);
+            doc.setLineWidth(0.5);
+            doc.roundedRect(xPos, yPosition, cardWidth, cardHeight, 3, 3, 'S');
+            
+            // Image placeholder box (left side of card)
+            const imgWidth = 35;
+            const imgHeight = cardHeight - 6;
+            doc.setFillColor(accentLight.r, accentLight.g, accentLight.b);
+            doc.roundedRect(xPos + 3, yPosition + 3, imgWidth, imgHeight, 2, 2, 'F');
+            
+            // Image icon placeholder
+            doc.setTextColor(accent.r, accent.g, accent.b);
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            if (restaurant.picture) {
+              doc.text('IMAGE', xPos + 12, yPosition + imgHeight / 2 + 3);
+              doc.setFontSize(6);
+              doc.text('(View in app)', xPos + 8, yPosition + imgHeight / 2 + 9);
+            } else {
+              doc.text('No Image', xPos + 10, yPosition + imgHeight / 2 + 3);
+            }
+            
+            // Restaurant name
+            const textXPos = xPos + imgWidth + 8;
+            const textWidth = cardWidth - imgWidth - 12;
+            
+            doc.setTextColor(darkGray.r, darkGray.g, darkGray.b);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            const nameLines = doc.splitTextToSize(restaurant.name, textWidth);
+            doc.text(nameLines.slice(0, 2), textXPos, yPosition + 10);
+            
+            // Rating
+            if (restaurant.rating) {
+              const ratingY = yPosition + (nameLines.length > 1 ? 22 : 18);
+              doc.setFillColor(gold.r, gold.g, gold.b);
+              doc.circle(textXPos + 3, ratingY - 1, 3, 'F');
+              doc.setTextColor(255, 255, 255);
+              doc.setFontSize(6);
+              doc.setFont('helvetica', 'bold');
+              doc.text('★', textXPos + 1.5, ratingY + 1);
+              
+              doc.setTextColor(goldDark.r, goldDark.g, goldDark.b);
+              doc.setFontSize(8);
+              doc.text(`${restaurant.rating}`, textXPos + 9, ratingY);
+            }
+            
+            // Cuisines
+            if (restaurant.cuisines && restaurant.cuisines.length > 0) {
+              const cuisineY = restaurant.rating ? yPosition + 30 : yPosition + 22;
+              doc.setTextColor(mediumGray.r, mediumGray.g, mediumGray.b);
+              doc.setFontSize(7);
+              doc.setFont('helvetica', 'italic');
+              const cuisineText = restaurant.cuisines.slice(0, 3).join(', ');
+              const cuisineLines = doc.splitTextToSize(cuisineText, textWidth);
+              doc.text(cuisineLines.slice(0, 1), textXPos, cuisineY);
+            }
+          }
+          
+          yPosition += cardHeight + 8;
+        }
+      }
+      
       // ==================== TRAVEL TIPS ====================
-      yPosition += 22;
-      checkPageBreak(50);
+      checkPageBreak(60);
+      yPosition += 12;
       
       doc.setFillColor(accentLight.r, accentLight.g, accentLight.b);
       doc.roundedRect(margin, yPosition, contentWidth, 14, 3, 3, 'F');
