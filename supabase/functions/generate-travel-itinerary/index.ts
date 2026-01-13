@@ -119,7 +119,8 @@ async function hybridSearch(
   supabase: any,
   destination: string,
   tripType: string,
-  openaiKey: string
+  openaiKey: string,
+  daysCount: number = 3
 ): Promise<{ attractions: Attraction[]; restaurants: Restaurant[] }> {
   
   const searchQuery = `${tripType.replace('_', ' ')} attractions and activities in ${destination}`;
@@ -133,13 +134,16 @@ async function hybridSearch(
     // Format embedding as PostgreSQL vector string
     const vectorString = `[${embedding.join(',')}]`;
 
-    // Call hybrid search functions
+    // Call hybrid search functions - get more results for multi-day trips (3 per day)
+    const attractionsNeeded = Math.max(10, daysCount * 3);
+    const restaurantsNeeded = Math.max(5, daysCount * 2);
+    
     const [attractionsResult, restaurantsResult] = await Promise.all([
       supabase.rpc('hybrid_search_attractions', {
         query_text: searchQuery,
         query_embedding: vectorString,
         destination_filter: destination,
-        match_count: 10,
+        match_count: attractionsNeeded,
         vector_weight: 0.6,
         text_weight: 0.4,
       }),
@@ -147,7 +151,7 @@ async function hybridSearch(
         query_text: `restaurants and dining in ${destination}`,
         query_embedding: vectorString,
         destination_filter: destination,
-        match_count: 5,
+        match_count: restaurantsNeeded,
         vector_weight: 0.6,
         text_weight: 0.4,
       }),
@@ -176,24 +180,31 @@ async function hybridSearch(
 async function textSearch(
   supabase: any,
   destination: string,
-  tripType: string
+  tripType: string,
+  daysCount: number = 3
 ): Promise<{ attractions: Attraction[]; restaurants: Restaurant[] }> {
   
   console.log("Falling back to text search for:", destination);
+
+  // Get more results for multi-day trips
+  const attractionsNeeded = Math.max(10, daysCount * 3);
+  const restaurantsNeeded = Math.max(5, daysCount * 2);
 
   const [attractionsResult, restaurantsResult] = await Promise.all([
     supabase
       .from('attractions')
       .select('id, name, description, picture, destination, rating, categories, general_location')
       .ilike('destination', `%${destination}%`)
+      .not('picture', 'is', null) // Only get attractions with images
       .order('rating', { ascending: false, nullsFirst: false })
-      .limit(10),
+      .limit(attractionsNeeded),
     supabase
       .from('restaurants')
       .select('id, name, description, picture, destination, rating, cuisines, general_location')
       .ilike('destination', `%${destination}%`)
+      .not('picture', 'is', null) // Only get restaurants with images
       .order('rating', { ascending: false, nullsFirst: false })
-      .limit(5),
+      .limit(restaurantsNeeded),
   ]);
 
   const attractions = attractionsResult.data || [];
@@ -337,13 +348,14 @@ serve(async (req) => {
       supabase, 
       tripData.destination, 
       tripData.tripType,
-      OPENAI_API_KEY
+      OPENAI_API_KEY,
+      tripData.daysCount
     );
 
     // If hybrid search returns no results, try text search
     if (attractions.length === 0 && restaurants.length === 0) {
       console.log("Hybrid search returned no results, trying text search...");
-      const textResults = await textSearch(supabase, tripData.destination, tripData.tripType);
+      const textResults = await textSearch(supabase, tripData.destination, tripData.tripType, tripData.daysCount);
       attractions = textResults.attractions;
       restaurants = textResults.restaurants;
     }
