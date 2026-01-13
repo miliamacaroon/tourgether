@@ -3,11 +3,12 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Star } from 'lucide-react';
 import DayCard from './DayCard';
-import { AttractionData } from '@/services/itineraryService';
+import { AttractionData, RestaurantData } from '@/services/itineraryService';
 
 interface ItineraryContentProps {
   itinerary: string;
   attractions: AttractionData[];
+  restaurants: RestaurantData[];
   daysCount: number;
 }
 
@@ -17,7 +18,7 @@ interface DayContent {
   content: string;
 }
 
-const ItineraryContent = ({ itinerary, attractions, daysCount }: ItineraryContentProps) => {
+const ItineraryContent = ({ itinerary, attractions, restaurants, daysCount }: ItineraryContentProps) => {
   // Parse itinerary into day sections
   const dayContents = useMemo(() => {
     const days: DayContent[] = [];
@@ -65,6 +66,15 @@ const ItineraryContent = ({ itinerary, attractions, daysCount }: ItineraryConten
     ).slice(0, 3);
   };
 
+  // Distribute restaurants across days
+  const getRestaurantsForDay = (dayIndex: number) => {
+    const restaurantsPerDay = Math.ceil(restaurants.length / daysCount);
+    return restaurants.slice(
+      dayIndex * restaurantsPerDay,
+      (dayIndex + 1) * restaurantsPerDay
+    ).slice(0, 2);
+  };
+
   // If no day structure found, render as a single card
   if (dayContents.length === 0) {
     return (
@@ -87,6 +97,7 @@ const ItineraryContent = ({ itinerary, attractions, daysCount }: ItineraryConten
           dayNumber={day.dayNumber}
           title={day.title}
           attractions={getAttractionsForDay(day.dayNumber - 1)}
+          restaurants={getRestaurantsForDay(day.dayNumber - 1)}
           totalDays={daysCount}
         >
           <ReactMarkdown

@@ -123,6 +123,41 @@ const Itinerary = () => {
         return false;
       };
 
+      // Helper function to load image as base64
+      const loadImageAsBase64 = async (url: string): Promise<string | null> => {
+        try {
+          const response = await fetch(url);
+          const blob = await response.blob();
+          return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(blob);
+          });
+        } catch {
+          return null;
+        }
+      };
+
+      // Pre-load all images
+      const attractionImages: Map<number, string> = new Map();
+      const restaurantImages: Map<number, string> = new Map();
+      
+      await Promise.all([
+        ...attractions.map(async (attraction) => {
+          if (attraction.picture) {
+            const base64 = await loadImageAsBase64(attraction.picture);
+            if (base64) attractionImages.set(attraction.id, base64);
+          }
+        }),
+        ...restaurants.map(async (restaurant) => {
+          if (restaurant.picture) {
+            const base64 = await loadImageAsBase64(restaurant.picture);
+            if (base64) restaurantImages.set(restaurant.id, base64);
+          }
+        })
+      ]);
+
       // ==================== COVER PAGE ====================
       
       // Full page teal header
@@ -505,21 +540,25 @@ const Itinerary = () => {
             doc.setLineWidth(0.5);
             doc.roundedRect(xPos, yPosition, cardWidth, cardHeight, 3, 3, 'S');
             
-            // Image placeholder box (left side of card)
+            // Image area (left side of card)
             const imgWidth = 35;
             const imgHeight = cardHeight - 6;
-            doc.setFillColor(primaryLight.r, primaryLight.g, primaryLight.b);
-            doc.roundedRect(xPos + 3, yPosition + 3, imgWidth, imgHeight, 2, 2, 'F');
+            const imageBase64 = attractionImages.get(attraction.id);
             
-            // Image icon placeholder
-            doc.setTextColor(primary.r, primary.g, primary.b);
-            doc.setFontSize(8);
-            doc.setFont('helvetica', 'normal');
-            if (attraction.picture) {
-              doc.text('IMAGE', xPos + 12, yPosition + imgHeight / 2 + 3);
-              doc.setFontSize(6);
-              doc.text('(View in app)', xPos + 8, yPosition + imgHeight / 2 + 9);
+            if (imageBase64) {
+              try {
+                doc.addImage(imageBase64, 'JPEG', xPos + 3, yPosition + 3, imgWidth, imgHeight);
+              } catch {
+                // Fallback if image fails
+                doc.setFillColor(primaryLight.r, primaryLight.g, primaryLight.b);
+                doc.roundedRect(xPos + 3, yPosition + 3, imgWidth, imgHeight, 2, 2, 'F');
+              }
             } else {
+              doc.setFillColor(primaryLight.r, primaryLight.g, primaryLight.b);
+              doc.roundedRect(xPos + 3, yPosition + 3, imgWidth, imgHeight, 2, 2, 'F');
+              doc.setTextColor(primary.r, primary.g, primary.b);
+              doc.setFontSize(8);
+              doc.setFont('helvetica', 'normal');
               doc.text('No Image', xPos + 10, yPosition + imgHeight / 2 + 3);
             }
             
@@ -610,21 +649,25 @@ const Itinerary = () => {
             doc.setLineWidth(0.5);
             doc.roundedRect(xPos, yPosition, cardWidth, cardHeight, 3, 3, 'S');
             
-            // Image placeholder box (left side of card)
+            // Image area (left side of card)
             const imgWidth = 35;
             const imgHeight = cardHeight - 6;
-            doc.setFillColor(accentLight.r, accentLight.g, accentLight.b);
-            doc.roundedRect(xPos + 3, yPosition + 3, imgWidth, imgHeight, 2, 2, 'F');
+            const imageBase64 = restaurantImages.get(restaurant.id);
             
-            // Image icon placeholder
-            doc.setTextColor(accent.r, accent.g, accent.b);
-            doc.setFontSize(8);
-            doc.setFont('helvetica', 'normal');
-            if (restaurant.picture) {
-              doc.text('IMAGE', xPos + 12, yPosition + imgHeight / 2 + 3);
-              doc.setFontSize(6);
-              doc.text('(View in app)', xPos + 8, yPosition + imgHeight / 2 + 9);
+            if (imageBase64) {
+              try {
+                doc.addImage(imageBase64, 'JPEG', xPos + 3, yPosition + 3, imgWidth, imgHeight);
+              } catch {
+                // Fallback if image fails
+                doc.setFillColor(accentLight.r, accentLight.g, accentLight.b);
+                doc.roundedRect(xPos + 3, yPosition + 3, imgWidth, imgHeight, 2, 2, 'F');
+              }
             } else {
+              doc.setFillColor(accentLight.r, accentLight.g, accentLight.b);
+              doc.roundedRect(xPos + 3, yPosition + 3, imgWidth, imgHeight, 2, 2, 'F');
+              doc.setTextColor(accent.r, accent.g, accent.b);
+              doc.setFontSize(8);
+              doc.setFont('helvetica', 'normal');
               doc.text('No Image', xPos + 10, yPosition + imgHeight / 2 + 3);
             }
             
@@ -1055,7 +1098,8 @@ const Itinerary = () => {
           <div className="space-y-8">
             <ItineraryContent 
               itinerary={itinerary} 
-              attractions={attractions} 
+              attractions={attractions}
+              restaurants={restaurants}
               daysCount={tripData.daysCount}
             />
           </div>

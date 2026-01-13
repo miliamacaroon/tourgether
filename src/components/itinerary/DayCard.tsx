@@ -1,16 +1,17 @@
-import { Star, MapPin, Clock, Sparkles, ChevronRight } from 'lucide-react';
-import { AttractionData } from '@/services/itineraryService';
+import { Star, MapPin, Clock, Sparkles, ChevronRight, Utensils } from 'lucide-react';
+import { AttractionData, RestaurantData } from '@/services/itineraryService';
 import { cn } from '@/lib/utils';
 
 interface DayCardProps {
   dayNumber: number;
   title: string;
   attractions: AttractionData[];
+  restaurants: RestaurantData[];
   children: React.ReactNode;
   totalDays: number;
 }
 
-const DayCard = ({ dayNumber, title, attractions, children, totalDays }: DayCardProps) => {
+const DayCard = ({ dayNumber, title, attractions, restaurants, children, totalDays }: DayCardProps) => {
   // Vibrant gradient colors for each day - cycling through the palette
   const dayColors = [
     'from-primary via-primary/80 to-accent-foreground',
@@ -93,7 +94,7 @@ const DayCard = ({ dayNumber, title, attractions, children, totalDays }: DayCard
               <div className="w-6 h-6 rounded-lg bg-primary/20 flex items-center justify-center">
                 <Star className="w-3 h-3 text-primary" />
               </div>
-              <span className="text-sm font-semibold text-foreground">Today's Highlights</span>
+              <span className="text-sm font-semibold text-foreground">Today's Attractions</span>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </div>
             
@@ -149,6 +150,80 @@ const DayCard = ({ dayNumber, title, attractions, children, totalDays }: DayCard
                       {attraction.categories && attraction.categories.length > 0 && (
                         <p className="text-white/70 text-xs mt-0.5 line-clamp-1">
                           {attraction.categories.slice(0, 2).join(' • ')}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Restaurants gallery */}
+        {restaurants.length > 0 && (
+          <div className="p-4 bg-gradient-to-b from-accent/5 to-transparent border-b border-border/50">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-6 h-6 rounded-lg bg-accent/20 flex items-center justify-center">
+                <Utensils className="w-3 h-3 text-accent-foreground" />
+              </div>
+              <span className="text-sm font-semibold text-foreground">Today's Dining</span>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {restaurants.map((restaurant, index) => (
+                <div 
+                  key={restaurant.id} 
+                  className="group/card relative overflow-hidden rounded-xl bg-card border border-border/50 shadow-sm hover:shadow-lg hover:border-accent/30 transition-all duration-300"
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
+                  {/* Image container */}
+                  <div className="relative aspect-[16/9] overflow-hidden">
+                    {restaurant.picture ? (
+                      <>
+                        <img 
+                          src={restaurant.picture} 
+                          alt={restaurant.name}
+                          className="w-full h-full object-cover group-hover/card:scale-110 transition-transform duration-700"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/placeholder.svg';
+                          }}
+                        />
+                        {/* Gradient overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                        
+                        {/* Hover reveal overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-accent/80 via-accent/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
+                      </>
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
+                        <Utensils className="w-8 h-8 text-muted-foreground/30" />
+                      </div>
+                    )}
+                    
+                    {/* Rating badge */}
+                    {restaurant.rating && (
+                      <div className="absolute top-2 right-2 flex items-center gap-1 bg-background/95 backdrop-blur-sm px-2 py-1 rounded-lg shadow-lg border border-border/50">
+                        <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+                        <span className="text-xs font-bold">{restaurant.rating}</span>
+                      </div>
+                    )}
+                    
+                    {/* Cuisine badge */}
+                    <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-accent/90 text-accent-foreground flex items-center justify-center text-xs font-medium shadow-lg">
+                      <Utensils className="w-3 h-3 mr-1" />
+                      Dining
+                    </div>
+                    
+                    {/* Bottom info */}
+                    <div className="absolute bottom-0 left-0 right-0 p-3">
+                      <p className="text-white font-semibold text-sm line-clamp-1 drop-shadow-lg">
+                        {restaurant.name}
+                      </p>
+                      {restaurant.cuisines && restaurant.cuisines.length > 0 && (
+                        <p className="text-white/70 text-xs mt-0.5 line-clamp-1">
+                          {restaurant.cuisines.slice(0, 3).join(' • ')}
                         </p>
                       )}
                     </div>
