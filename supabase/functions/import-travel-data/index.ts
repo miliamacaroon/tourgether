@@ -92,26 +92,46 @@ serve(async (req) => {
     console.log("Starting import from external Supabase...");
     console.log("Destination filter:", destination || "all");
 
-    // Fetch attractions from attraction_embeddings table
+    // Fetch full attraction data from attractions table
     let attractionsQuery = externalSupabase
-      .from("attraction_embeddings")
+      .from("attractions")
       .select("*");
     
     if (destination) {
-      attractionsQuery = attractionsQuery.or(`destination.ilike.%${destination}%,DESTINATION.ilike.%${destination}%`);
+      attractionsQuery = attractionsQuery.or(`"DESTINATION".ilike.%${destination}%`);
     }
     
-    const { data: externalAttractions, error: attractionsError } = await attractionsQuery.limit(100);
+    const { data: externalAttractions, error: attractionsError, count } = await attractionsQuery.limit(100);
 
+    console.log("Attractions query result - error:", attractionsError, "count:", count, "data length:", externalAttractions?.length);
+    
     if (attractionsError) {
-      console.error("Error fetching from attraction_embeddings:", attractionsError);
+      console.error("Error fetching from attractions:", JSON.stringify(attractionsError));
       console.log("Continuing without attractions...");
     }
 
-    console.log(`Fetched ${externalAttractions?.length || 0} attractions from attraction_embeddings`);
+    console.log(`Fetched ${externalAttractions?.length || 0} attractions from attractions table`);
     if (externalAttractions && externalAttractions.length > 0) {
       console.log("Sample attraction keys:", Object.keys(externalAttractions[0]));
       console.log("Sample attraction data:", JSON.stringify(externalAttractions[0]).slice(0, 500));
+    }
+
+    // Fetch existing embeddings from attraction_embeddings table
+    const { data: attractionEmbeddings, error: embeddingsError } = await externalSupabase
+      .from("attraction_embeddings")
+      .select("id, embedding");
+
+    if (embeddingsError) {
+      console.error("Error fetching attraction_embeddings:", embeddingsError);
+    }
+    
+    // Create a map of id -> embedding for quick lookup
+    const embeddingsMap = new Map<number, any>();
+    if (attractionEmbeddings) {
+      attractionEmbeddings.forEach((item: any) => {
+        embeddingsMap.set(item.id, item.embedding);
+      });
+      console.log(`Loaded ${embeddingsMap.size} embeddings from attraction_embeddings`);
     }
 
     // Fetch restaurants from restaurants table
@@ -143,11 +163,18 @@ serve(async (req) => {
         const processedBatch = await Promise.all(
           batch.map(async (item: any) => {
             try {
-              let embedding: number[] | null = null;
+              const itemId = item.ID || item.id;
               
-              if (generateEmbeddings) {
+              // Use existing embedding from attraction_embeddings if available
+              let embedding = embeddingsMap.get(itemId) || null;
+              
+              // Only generate new embedding if not found and generateEmbeddings is true
+              if (!embedding && generateEmbeddings) {
                 const searchText = createSearchableText(item, "attraction");
-                embedding = await generateEmbedding(searchText, LOVABLE_API_KEY);
+                const newEmbedding = await generateEmbedding(searchText, LOVABLE_API_KEY);
+                if (newEmbedding) {
+                  embedding = `[${newEmbedding.join(",")}]`;
+                }
               }
 
               // Parse REVIEW_TAGS and CATEGORIES from text to arrays if needed
@@ -162,7 +189,7 @@ serve(async (req) => {
 
               // Map from external UPPERCASE columns to local lowercase
               return {
-                id: item.ID || item.id,
+                id: itemId,
                 name: item.NAME || item.name,
                 picture: item.PICTURE || item.picture,
                 rating: item.RATING || item.rating,
@@ -177,7 +204,7 @@ serve(async (req) => {
                 longitude: null,
                 general_location: null,
                 number_of_reviews: 0,
-                embedding: embedding ? `[${embedding.join(",")}]` : null,
+                embedding: embedding,
               };
             } catch (error) {
               console.error(`Error processing attraction:`, error);
