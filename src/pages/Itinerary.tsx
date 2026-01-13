@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Globe, Calendar, Wallet, Users, Download, Share2, Sparkles, Clock, Loader2, MapPin, Star, Database, Search } from 'lucide-react';
+import { ArrowLeft, Globe, Calendar, Wallet, Users, Download, Share2, Sparkles, Clock, Loader2, MapPin, Star, Database, Search, Compass, Plane } from 'lucide-react';
+import ItineraryContent from '@/components/itinerary/ItineraryContent';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import jsPDF from 'jspdf';
 import { AttractionData, RestaurantData } from '@/services/itineraryService';
 
@@ -1026,146 +1025,40 @@ const Itinerary = () => {
       )}
 
       {/* Itinerary Content */}
-      <section className="py-12">
-        <div className="container max-w-4xl mx-auto px-4">
-          <Card className="overflow-hidden shadow-2xl border-0 bg-card">
-            {/* Top gradient bar */}
-            <div className="h-1 bg-primary"></div>
-            <CardContent className="p-6 md:p-10">
-              <ReactMarkdown
-                components={{
-                  h2: ({ children }) => {
-                    const dayNum = String(children).match(/Day (\d+)/)?.[1];
-                    const dayIndex = dayNum ? parseInt(dayNum) - 1 : 0;
-                    // Get attractions for this day (distribute evenly across days)
-                    const attractionsPerDay = Math.ceil(attractions.length / (tripData?.daysCount || 1));
-                    const dayAttractions = attractions.slice(
-                      dayIndex * attractionsPerDay,
-                      (dayIndex + 1) * attractionsPerDay
-                    ).slice(0, 3); // Max 3 attractions per day
-                    
-                    return (
-                      <div className="mt-10 first:mt-0 mb-6">
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg shrink-0 shadow-lg">
-                            {dayNum || '📍'}
-                          </div>
-                          <div className="flex-1">
-                            <h2 className="text-xl md:text-2xl font-bold text-foreground">{children}</h2>
-                            <div className="h-1 w-20 bg-primary/30 rounded-full mt-2"></div>
-                          </div>
-                        </div>
-                        
-                        {/* Day Attractions Gallery */}
-                        {dayAttractions.length > 0 && (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6 p-4 bg-muted/30 rounded-xl border border-border/50">
-                            {dayAttractions.map((attraction) => (
-                              <div key={attraction.id} className="group relative overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow">
-                                {attraction.picture ? (
-                                  <div className="aspect-[4/3] relative">
-                                    <img 
-                                      src={attraction.picture} 
-                                      alt={attraction.name}
-                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                      onError={(e) => {
-                                        (e.target as HTMLImageElement).src = '/placeholder.svg';
-                                      }}
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-                                    <div className="absolute bottom-0 left-0 right-0 p-3">
-                                      <p className="text-white font-semibold text-sm line-clamp-1">{attraction.name}</p>
-                                      {attraction.rating && (
-                                        <div className="flex items-center gap-1 mt-1">
-                                          <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                                          <span className="text-white/90 text-xs">{attraction.rating}</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="aspect-[4/3] bg-muted flex flex-col items-center justify-center p-3">
-                                    <MapPin className="w-8 h-8 text-muted-foreground/50 mb-2" />
-                                    <p className="text-muted-foreground text-sm text-center line-clamp-2">{attraction.name}</p>
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  },
-                  h3: ({ children }) => (
-                    <div className="mt-6 mb-4 ml-4 md:ml-16">
-                      <div className="inline-flex items-center gap-3 bg-accent/10 text-accent-foreground px-4 py-2 rounded-full border border-accent/20">
-                        <span className="w-2 h-2 rounded-full bg-primary"></span>
-                        <span className="text-sm font-semibold">{children}</span>
-                      </div>
-                    </div>
-                  ),
-                  p: ({ children }) => (
-                    <p className="text-foreground/85 leading-relaxed mb-4 ml-4 md:ml-16 text-sm md:text-base">{children}</p>
-                  ),
-                  ul: ({ children }) => (
-                    <ul className="space-y-2 mb-6 ml-4 md:ml-16 list-none">{children}</ul>
-                  ),
-                  ol: ({ children }) => (
-                    <ol className="space-y-2 mb-6 ml-4 md:ml-16 list-none">{children}</ol>
-                  ),
-                  li: ({ children }) => (
-                    <li className="flex items-start gap-3 text-foreground/85 text-sm md:text-base p-3 rounded-lg border-l-3 border-primary/40 bg-muted/20 hover:bg-accent/20 transition-colors">
-                      <span className="text-primary text-sm mt-0.5">•</span>
-                      <span className="flex-1">{children}</span>
-                    </li>
-                  ),
-                  strong: ({ children }) => (
-                    <strong className="font-semibold text-foreground">{children}</strong>
-                  ),
-                  em: ({ children }) => (
-                    <span className="text-muted-foreground italic">{children}</span>
-                  ),
-                  hr: () => (
-                    <hr className="my-8 border-0 h-px bg-border ml-4 md:ml-16" />
-                  ),
-                  table: ({ children }) => (
-                    <div className="my-6 ml-4 md:ml-16 overflow-x-auto">
-                      <table className="w-full border-collapse rounded-lg overflow-hidden border border-border">
-                        {children}
-                      </table>
-                    </div>
-                  ),
-                  thead: ({ children }) => (
-                    <thead className="bg-primary text-primary-foreground">
-                      {children}
-                    </thead>
-                  ),
-                  tbody: ({ children }) => (
-                    <tbody className="bg-card">
-                      {children}
-                    </tbody>
-                  ),
-                  tr: ({ children }) => (
-                    <tr className="border-b border-border last:border-b-0 hover:bg-muted/20 transition-colors">
-                      {children}
-                    </tr>
-                  ),
-                  th: ({ children }) => (
-                    <th className="px-4 py-3 text-left font-semibold text-sm">
-                      {children}
-                    </th>
-                  ),
-                  td: ({ children }) => (
-                    <td className="px-4 py-3 text-sm text-foreground">
-                      {children}
-                    </td>
-                  ),
-                }}
-                remarkPlugins={[remarkGfm]}
-              >
-                {itinerary}
-              </ReactMarkdown>
-            </CardContent>
-          </Card>
+      <section className="py-16 relative overflow-hidden">
+        {/* Background decorations */}
+        <div className="absolute top-20 right-0 w-96 h-96 bg-gradient-to-bl from-primary/10 to-transparent rounded-full blur-3xl" />
+        <div className="absolute bottom-40 left-0 w-80 h-80 bg-gradient-to-tr from-accent-foreground/10 to-transparent rounded-full blur-3xl" />
+        
+        <div className="container max-w-4xl mx-auto px-4 relative z-10">
+          {/* Section header */}
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-3 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 backdrop-blur-sm px-6 py-3 rounded-full mb-6 border border-primary/30 shadow-lg">
+              <Compass className="w-5 h-5 text-primary animate-spin-slow" />
+              <span className="text-sm font-bold bg-gradient-to-r from-primary to-accent-foreground bg-clip-text text-transparent">
+                Your Day-by-Day Adventure
+              </span>
+              <Plane className="w-5 h-5 text-accent-foreground" />
+            </div>
+            <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
+              Complete{' '}
+              <span className="bg-gradient-to-r from-primary via-accent-foreground to-primary bg-clip-text text-transparent">
+                Travel Itinerary
+              </span>
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+              Every moment of your {tripData.daysCount}-day journey, carefully crafted with AI precision
+            </p>
+          </div>
+          
+          {/* Day cards container */}
+          <div className="space-y-8">
+            <ItineraryContent 
+              itinerary={itinerary} 
+              attractions={attractions} 
+              daysCount={tripData.daysCount}
+            />
+          </div>
         </div>
       </section>
 
