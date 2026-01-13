@@ -8,7 +8,6 @@ const corsHeaders = {
 
 // External Supabase credentials (source database)
 const EXTERNAL_SUPABASE_URL = "https://rsuqvgdnpgeaouacctst.supabase.co";
-const EXTERNAL_SUPABASE_KEY = "sb_publishable_TnveSiGzvzXaJAMeSqbtqw_GJoC7OpP";
 
 async function generateEmbedding(text: string, apiKey: string): Promise<number[] | null> {
   try {
@@ -84,8 +83,12 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const localSupabase = createClient(supabaseUrl, supabaseKey);
 
-    // External Supabase (source)
-    const externalSupabase = createClient(EXTERNAL_SUPABASE_URL, EXTERNAL_SUPABASE_KEY);
+    // External Supabase (source) - use service role key to bypass RLS
+    const externalServiceKey = Deno.env.get("EXTERNAL_SUPABASE_SERVICE_KEY");
+    if (!externalServiceKey) {
+      throw new Error("EXTERNAL_SUPABASE_SERVICE_KEY is not configured");
+    }
+    const externalSupabase = createClient(EXTERNAL_SUPABASE_URL, externalServiceKey);
 
     const { generateEmbeddings = true, batchSize = 25, destination } = await req.json();
 
