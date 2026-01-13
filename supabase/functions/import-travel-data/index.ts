@@ -6,43 +6,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface AttractionData {
-  ID: number;
-  NAME: string;
-  TRIPADVISOR_URL?: string;
-  ATTRACTION_URL?: string;
-  PICTURE?: string;
-  RATING?: number;
-  DESTINATION: string;
-  DESCRIPTION?: string;
-  LATITUDE?: number;
-  LONGITUDE?: number;
-  GENERAL_LOCATION?: string;
-  NUMBER_OF_REVIEWS?: number;
-  REVIEW_TAGS?: string[];
-  CATEGORIES?: string[];
-}
-
-interface RestaurantData {
-  ID: number;
-  NAME: string;
-  TRIPADVISOR_URL?: string;
-  RESTAURANT_URL?: string;
-  PICTURE?: string;
-  RATING?: number;
-  DESTINATION: string;
-  DESCRIPTION?: string;
-  LATITUDE?: number;
-  LONGITUDE?: number;
-  GENERAL_LOCATION?: string;
-  NUMBER_OF_REVIEWS?: number;
-  REVIEW_TAGS?: string[];
-  CUISINES?: string[];
-  DISHES?: string[];
-  MEAL_TYPES?: string[];
-  FEATURES?: string[];
-  HOURS?: Record<string, unknown>;
-}
+// External Supabase credentials (source database)
+const EXTERNAL_SUPABASE_URL = "https://rsuqvgdnpgeaouacctst.supabase.co";
+const EXTERNAL_SUPABASE_KEY = "sb_publishable_TnveSiGzvzXaJAMeSqbtqw_GJoC7OpP";
 
 async function generateEmbedding(text: string, apiKey: string): Promise<number[] | null> {
   try {
@@ -72,18 +38,16 @@ async function generateEmbedding(text: string, apiKey: string): Promise<number[]
   }
 }
 
-function createSearchableText(item: AttractionData | RestaurantData, type: "attraction" | "restaurant"): string {
-  const parts = [item.NAME, item.DESTINATION, item.DESCRIPTION || ""];
+function createSearchableText(item: any, type: "attraction" | "restaurant"): string {
+  const parts = [item.name, item.destination, item.description || ""];
   
   if (type === "attraction") {
-    const attraction = item as AttractionData;
-    if (attraction.CATEGORIES) parts.push(attraction.CATEGORIES.join(" "));
-    if (attraction.REVIEW_TAGS) parts.push(attraction.REVIEW_TAGS.join(" "));
+    if (item.categories) parts.push(item.categories.join(" "));
+    if (item.review_tags) parts.push(item.review_tags.join(" "));
   } else {
-    const restaurant = item as RestaurantData;
-    if (restaurant.CUISINES) parts.push(restaurant.CUISINES.join(" "));
-    if (restaurant.DISHES) parts.push(restaurant.DISHES.join(" "));
-    if (restaurant.REVIEW_TAGS) parts.push(restaurant.REVIEW_TAGS.join(" "));
+    if (item.cuisines) parts.push(item.cuisines.join(" "));
+    if (item.dishes) parts.push(item.dishes.join(" "));
+    if (item.review_tags) parts.push(item.review_tags.join(" "));
   }
   
   return parts.filter(Boolean).join(" ").slice(0, 8000);
@@ -100,130 +64,199 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
+    // Lovable Cloud Supabase (destination)
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const localSupabase = createClient(supabaseUrl, supabaseKey);
 
-    const { type, data, generateEmbeddings = true, batchSize = 50 } = await req.json();
+    // External Supabase (source)
+    const externalSupabase = createClient(EXTERNAL_SUPABASE_URL, EXTERNAL_SUPABASE_KEY);
 
-    if (!type || !["attractions", "restaurants"].includes(type)) {
-      return new Response(
-        JSON.stringify({ error: "Invalid type. Must be 'attractions' or 'restaurants'" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    const { generateEmbeddings = true, batchSize = 25, destination } = await req.json();
+
+    console.log("Starting import from external Supabase...");
+    console.log("Destination filter:", destination || "all");
+
+    // Fetch attractions from external Supabase
+    let attractionsQuery = externalSupabase
+      .from("attractions")
+      .select("*");
+    
+    if (destination) {
+      attractionsQuery = attractionsQuery.ilike("destination", `%${destination}%`);
+    }
+    
+    const { data: externalAttractions, error: attractionsError } = await attractionsQuery.limit(100);
+
+    if (attractionsError) {
+      console.error("Error fetching attractions:", attractionsError);
+      throw new Error(`Failed to fetch attractions: ${attractionsError.message}`);
     }
 
-    if (!data || !Array.isArray(data)) {
-      return new Response(
-        JSON.stringify({ error: "Data must be an array" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    console.log(`Fetched ${externalAttractions?.length || 0} attractions from external Supabase`);
+    if (externalAttractions?.length > 0) {
+      console.log("Sample attraction keys:", Object.keys(externalAttractions[0]));
     }
 
-    console.log(`Processing ${data.length} ${type} records...`);
+    // Fetch restaurants from external Supabase
+    let restaurantsQuery = externalSupabase
+      .from("restaurants")
+      .select("*");
+    
+    if (destination) {
+      restaurantsQuery = restaurantsQuery.ilike("destination", `%${destination}%`);
+    }
+    
+    const { data: externalRestaurants, error: restaurantsError } = await restaurantsQuery.limit(50);
 
-    let successCount = 0;
-    let errorCount = 0;
+    if (restaurantsError) {
+      console.error("Error fetching restaurants:", restaurantsError);
+      throw new Error(`Failed to fetch restaurants: ${restaurantsError.message}`);
+    }
+
+    console.log(`Fetched ${externalRestaurants?.length || 0} restaurants from external Supabase`);
+
+    let attractionsImported = 0;
+    let restaurantsImported = 0;
     const errors: string[] = [];
 
-    // Process in batches
-    for (let i = 0; i < data.length; i += batchSize) {
-      const batch = data.slice(i, i + batchSize);
-      console.log(`Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(data.length / batchSize)}`);
+    // Process attractions in batches
+    if (externalAttractions && externalAttractions.length > 0) {
+      for (let i = 0; i < externalAttractions.length; i += batchSize) {
+        const batch = externalAttractions.slice(i, i + batchSize);
+        console.log(`Processing attractions batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(externalAttractions.length / batchSize)}`);
 
-      const processedBatch = await Promise.all(
-        batch.map(async (item: AttractionData | RestaurantData) => {
-          try {
-            let embedding: number[] | null = null;
-            
-            if (generateEmbeddings) {
-              const searchText = createSearchableText(item, type === "attractions" ? "attraction" : "restaurant");
-              embedding = await generateEmbedding(searchText, LOVABLE_API_KEY);
-            }
+        const processedBatch = await Promise.all(
+          batch.map(async (item: any) => {
+            try {
+              let embedding: number[] | null = null;
+              
+              if (generateEmbeddings) {
+                const searchText = createSearchableText(item, "attraction");
+                embedding = await generateEmbedding(searchText, LOVABLE_API_KEY);
+              }
 
-            if (type === "attractions") {
-              const attraction = item as AttractionData;
               return {
-                id: attraction.ID,
-                name: attraction.NAME,
-                tripadvisor_url: attraction.TRIPADVISOR_URL,
-                attraction_url: attraction.ATTRACTION_URL,
-                picture: attraction.PICTURE,
-                rating: attraction.RATING,
-                destination: attraction.DESTINATION,
-                description: attraction.DESCRIPTION,
-                latitude: attraction.LATITUDE,
-                longitude: attraction.LONGITUDE,
-                general_location: attraction.GENERAL_LOCATION,
-                number_of_reviews: attraction.NUMBER_OF_REVIEWS || 0,
-                review_tags: attraction.REVIEW_TAGS || [],
-                categories: attraction.CATEGORIES || [],
+                id: item.id,
+                name: item.name,
+                tripadvisor_url: item.tripadvisor_url,
+                attraction_url: item.attraction_url,
+                picture: item.picture,
+                rating: item.rating,
+                destination: item.destination,
+                description: item.description,
+                latitude: item.latitude,
+                longitude: item.longitude,
+                general_location: item.general_location,
+                number_of_reviews: item.number_of_reviews || 0,
+                review_tags: item.review_tags || [],
+                categories: item.categories || [],
                 embedding: embedding ? `[${embedding.join(",")}]` : null,
               };
-            } else {
-              const restaurant = item as RestaurantData;
-              return {
-                id: restaurant.ID,
-                name: restaurant.NAME,
-                tripadvisor_url: restaurant.TRIPADVISOR_URL,
-                restaurant_url: restaurant.RESTAURANT_URL,
-                picture: restaurant.PICTURE,
-                rating: restaurant.RATING,
-                destination: restaurant.DESTINATION,
-                description: restaurant.DESCRIPTION,
-                latitude: restaurant.LATITUDE,
-                longitude: restaurant.LONGITUDE,
-                general_location: restaurant.GENERAL_LOCATION,
-                number_of_reviews: restaurant.NUMBER_OF_REVIEWS || 0,
-                review_tags: restaurant.REVIEW_TAGS || [],
-                cuisines: restaurant.CUISINES || [],
-                dishes: restaurant.DISHES || [],
-                meal_types: restaurant.MEAL_TYPES || [],
-                features: restaurant.FEATURES || [],
-                hours: restaurant.HOURS || null,
-                embedding: embedding ? `[${embedding.join(",")}]` : null,
-              };
+            } catch (error) {
+              console.error(`Error processing attraction ${item.id}:`, error);
+              return null;
             }
-          } catch (error) {
-            console.error(`Error processing item ${item.ID}:`, error);
-            return null;
+          })
+        );
+
+        const validRecords = processedBatch.filter(Boolean);
+        
+        if (validRecords.length > 0) {
+          const { error: insertError } = await localSupabase
+            .from("attractions")
+            .upsert(validRecords, { onConflict: "id" });
+
+          if (insertError) {
+            console.error(`Insert error for attractions batch:`, insertError);
+            errors.push(`Attractions: ${insertError.message}`);
+          } else {
+            attractionsImported += validRecords.length;
           }
-        })
-      );
-
-      const validRecords = processedBatch.filter(Boolean);
-      
-      if (validRecords.length > 0) {
-        const tableName = type === "attractions" ? "attractions" : "restaurants";
-        const { error: insertError } = await supabase
-          .from(tableName)
-          .upsert(validRecords, { onConflict: "id" });
-
-        if (insertError) {
-          console.error(`Insert error for batch:`, insertError);
-          errorCount += validRecords.length;
-          errors.push(insertError.message);
-        } else {
-          successCount += validRecords.length;
         }
-      }
 
-      errorCount += batch.length - validRecords.length;
-
-      // Small delay between batches to avoid rate limiting
-      if (generateEmbeddings && i + batchSize < data.length) {
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Delay between batches
+        if (generateEmbeddings && i + batchSize < externalAttractions.length) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
       }
     }
 
-    console.log(`Import complete: ${successCount} success, ${errorCount} errors`);
+    // Process restaurants in batches
+    if (externalRestaurants && externalRestaurants.length > 0) {
+      for (let i = 0; i < externalRestaurants.length; i += batchSize) {
+        const batch = externalRestaurants.slice(i, i + batchSize);
+        console.log(`Processing restaurants batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(externalRestaurants.length / batchSize)}`);
+
+        const processedBatch = await Promise.all(
+          batch.map(async (item: any) => {
+            try {
+              let embedding: number[] | null = null;
+              
+              if (generateEmbeddings) {
+                const searchText = createSearchableText(item, "restaurant");
+                embedding = await generateEmbedding(searchText, LOVABLE_API_KEY);
+              }
+
+              return {
+                id: item.id,
+                name: item.name,
+                tripadvisor_url: item.tripadvisor_url,
+                restaurant_url: item.restaurant_url,
+                picture: item.picture,
+                rating: item.rating,
+                destination: item.destination,
+                description: item.description,
+                latitude: item.latitude,
+                longitude: item.longitude,
+                general_location: item.general_location,
+                number_of_reviews: item.number_of_reviews || 0,
+                review_tags: item.review_tags || [],
+                cuisines: item.cuisines || [],
+                dishes: item.dishes || [],
+                meal_types: item.meal_types || [],
+                features: item.features || [],
+                hours: item.hours || null,
+                embedding: embedding ? `[${embedding.join(",")}]` : null,
+              };
+            } catch (error) {
+              console.error(`Error processing restaurant ${item.id}:`, error);
+              return null;
+            }
+          })
+        );
+
+        const validRecords = processedBatch.filter(Boolean);
+        
+        if (validRecords.length > 0) {
+          const { error: insertError } = await localSupabase
+            .from("restaurants")
+            .upsert(validRecords, { onConflict: "id" });
+
+          if (insertError) {
+            console.error(`Insert error for restaurants batch:`, insertError);
+            errors.push(`Restaurants: ${insertError.message}`);
+          } else {
+            restaurantsImported += validRecords.length;
+          }
+        }
+
+        // Delay between batches
+        if (generateEmbeddings && i + batchSize < externalRestaurants.length) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+    }
+
+    console.log(`Import complete: ${attractionsImported} attractions, ${restaurantsImported} restaurants`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        imported: successCount,
-        errors: errorCount,
-        errorMessages: errors.slice(0, 10),
+        attractionsImported,
+        restaurantsImported,
+        totalImported: attractionsImported + restaurantsImported,
+        errors: errors.length > 0 ? errors : undefined,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
