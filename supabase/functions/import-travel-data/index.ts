@@ -38,16 +38,31 @@ async function generateEmbedding(text: string, apiKey: string): Promise<number[]
   }
 }
 
+// Helper to get value from object with case-insensitive key lookup
+function getField(obj: any, fieldName: string): any {
+  const lowerField = fieldName.toLowerCase();
+  const upperField = fieldName.toUpperCase();
+  return obj[fieldName] ?? obj[lowerField] ?? obj[upperField] ?? obj[fieldName.charAt(0).toUpperCase() + fieldName.slice(1)];
+}
+
 function createSearchableText(item: any, type: "attraction" | "restaurant"): string {
-  const parts = [item.name, item.destination, item.description || ""];
+  const name = getField(item, 'name') || getField(item, 'NAME');
+  const destination = getField(item, 'destination') || getField(item, 'DESTINATION');
+  const description = getField(item, 'description') || getField(item, 'DESCRIPTION');
+  const parts = [name, destination, description || ""];
   
   if (type === "attraction") {
-    if (item.categories) parts.push(item.categories.join(" "));
-    if (item.review_tags) parts.push(item.review_tags.join(" "));
+    const categories = getField(item, 'categories') || getField(item, 'CATEGORIES');
+    const reviewTags = getField(item, 'review_tags') || getField(item, 'REVIEW_TAGS');
+    if (categories) parts.push(Array.isArray(categories) ? categories.join(" ") : categories);
+    if (reviewTags) parts.push(Array.isArray(reviewTags) ? reviewTags.join(" ") : reviewTags);
   } else {
-    if (item.cuisines) parts.push(item.cuisines.join(" "));
-    if (item.dishes) parts.push(item.dishes.join(" "));
-    if (item.review_tags) parts.push(item.review_tags.join(" "));
+    const cuisines = getField(item, 'cuisines') || getField(item, 'CUISINES');
+    const dishes = getField(item, 'dishes') || getField(item, 'DISHES');
+    const reviewTags = getField(item, 'review_tags') || getField(item, 'REVIEW_TAGS');
+    if (cuisines) parts.push(Array.isArray(cuisines) ? cuisines.join(" ") : cuisines);
+    if (dishes) parts.push(Array.isArray(dishes) ? dishes.join(" ") : dishes);
+    if (reviewTags) parts.push(Array.isArray(reviewTags) ? reviewTags.join(" ") : reviewTags);
   }
   
   return parts.filter(Boolean).join(" ").slice(0, 8000);
@@ -83,38 +98,55 @@ serve(async (req) => {
       .select("*");
     
     if (destination) {
-      attractionsQuery = attractionsQuery.ilike("destination", `%${destination}%`);
+      attractionsQuery = attractionsQuery.or(`destination.ilike.%${destination}%,DESTINATION.ilike.%${destination}%`);
     }
     
     const { data: externalAttractions, error: attractionsError } = await attractionsQuery.limit(100);
 
     if (attractionsError) {
       console.error("Error fetching attractions:", attractionsError);
-      throw new Error(`Failed to fetch attractions: ${attractionsError.message}`);
+      // Continue without throwing - just log and skip attractions
+      console.log("Continuing without attractions...");
     }
 
     console.log(`Fetched ${externalAttractions?.length || 0} attractions from external Supabase`);
-    if (externalAttractions?.length > 0) {
+    if (externalAttractions && externalAttractions.length > 0) {
       console.log("Sample attraction keys:", Object.keys(externalAttractions[0]));
+      console.log("Sample attraction data:", JSON.stringify(externalAttractions[0]).slice(0, 500));
     }
 
-    // Fetch restaurants from external Supabase
-    let restaurantsQuery = externalSupabase
-      .from("restaurants")
-      .select("*");
+    // Try restaurant_embeddings first, fall back to restaurants
+    let externalRestaurants: any[] = [];
+    let restaurantsError: any = null;
     
-    if (destination) {
-      restaurantsQuery = restaurantsQuery.ilike("destination", `%${destination}%`);
-    }
+    // Try restaurant_embeddings table first
+    const { data: restaurantEmbeddings, error: embeddingsError } = await externalSupabase
+      .from("restaurant_embeddings")
+      .select("*")
+      .limit(50);
     
-    const { data: externalRestaurants, error: restaurantsError } = await restaurantsQuery.limit(50);
-
-    if (restaurantsError) {
-      console.error("Error fetching restaurants:", restaurantsError);
-      throw new Error(`Failed to fetch restaurants: ${restaurantsError.message}`);
+    if (!embeddingsError && restaurantEmbeddings && restaurantEmbeddings.length > 0) {
+      console.log("Found restaurant_embeddings table");
+      externalRestaurants = restaurantEmbeddings;
+    } else {
+      // Fall back to restaurants table
+      const { data: restaurants, error: restError } = await externalSupabase
+        .from("restaurants")
+        .select("*")
+        .limit(50);
+      
+      if (restError) {
+        console.log("No restaurants table found either, skipping restaurants");
+        restaurantsError = restError;
+      } else {
+        externalRestaurants = restaurants || [];
+      }
     }
 
     console.log(`Fetched ${externalRestaurants?.length || 0} restaurants from external Supabase`);
+    if (externalRestaurants?.length > 0) {
+      console.log("Sample restaurant keys:", Object.keys(externalRestaurants[0]));
+    }
 
     let attractionsImported = 0;
     let restaurantsImported = 0;
@@ -136,25 +168,26 @@ serve(async (req) => {
                 embedding = await generateEmbedding(searchText, LOVABLE_API_KEY);
               }
 
+              // Handle both lowercase and uppercase column names
               return {
-                id: item.id,
-                name: item.name,
-                tripadvisor_url: item.tripadvisor_url,
-                attraction_url: item.attraction_url,
-                picture: item.picture,
-                rating: item.rating,
-                destination: item.destination,
-                description: item.description,
-                latitude: item.latitude,
-                longitude: item.longitude,
-                general_location: item.general_location,
-                number_of_reviews: item.number_of_reviews || 0,
-                review_tags: item.review_tags || [],
-                categories: item.categories || [],
+                id: getField(item, 'id') || getField(item, 'ID'),
+                name: getField(item, 'name') || getField(item, 'NAME'),
+                tripadvisor_url: getField(item, 'tripadvisor_url') || getField(item, 'TRIPADVISOR_URL'),
+                attraction_url: getField(item, 'attraction_url') || getField(item, 'ATTRACTION_URL'),
+                picture: getField(item, 'picture') || getField(item, 'PICTURE'),
+                rating: getField(item, 'rating') || getField(item, 'RATING'),
+                destination: getField(item, 'destination') || getField(item, 'DESTINATION'),
+                description: getField(item, 'description') || getField(item, 'DESCRIPTION'),
+                latitude: getField(item, 'latitude') || getField(item, 'LATITUDE'),
+                longitude: getField(item, 'longitude') || getField(item, 'LONGITUDE'),
+                general_location: getField(item, 'general_location') || getField(item, 'GENERAL_LOCATION'),
+                number_of_reviews: getField(item, 'number_of_reviews') || getField(item, 'NUMBER_OF_REVIEWS') || 0,
+                review_tags: getField(item, 'review_tags') || getField(item, 'REVIEW_TAGS') || [],
+                categories: getField(item, 'categories') || getField(item, 'CATEGORIES') || [],
                 embedding: embedding ? `[${embedding.join(",")}]` : null,
               };
             } catch (error) {
-              console.error(`Error processing attraction ${item.id}:`, error);
+              console.error(`Error processing attraction:`, error);
               return null;
             }
           })
