@@ -269,13 +269,14 @@ serve(async (req) => {
 
   try {
     // Get API keys
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
     const TAVILY_API_KEY = Deno.env.get('TAVILY_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    if (!OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY is not configured');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY is not configured');
     }
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error('Supabase credentials not configured');
@@ -343,14 +344,21 @@ serve(async (req) => {
       }
     }
 
-    // Step 1: Hybrid Retrieval (Vector + Full-Text Search)
-    let { attractions, restaurants } = await hybridSearch(
-      supabase, 
-      tripData.destination, 
-      tripData.tripType,
-      OPENAI_API_KEY,
-      tripData.daysCount
-    );
+    // Step 1: Hybrid Retrieval (Vector + Full-Text Search) - only if OPENAI_API_KEY available for embeddings
+    let attractions: Attraction[] = [];
+    let restaurants: Restaurant[] = [];
+    
+    if (OPENAI_API_KEY) {
+      const hybridResults = await hybridSearch(
+        supabase, 
+        tripData.destination, 
+        tripData.tripType,
+        OPENAI_API_KEY,
+        tripData.daysCount
+      );
+      attractions = hybridResults.attractions;
+      restaurants = hybridResults.restaurants;
+    }
 
     // If hybrid search returns no results, try text search
     if (attractions.length === 0 && restaurants.length === 0) {
@@ -381,7 +389,7 @@ serve(async (req) => {
     const hasContext = attractions.length > 0 || restaurants.length > 0 || tavilyResults.length > 0;
     console.log("Context built, has data:", hasContext, "context length:", context.length);
 
-    // Step 3: Generate itinerary with OpenAI
+    // Step 3: Generate itinerary with Lovable AI
     const tripTypeLabels: Record<string, string> = {
       'landmarks': 'Famous landmarks and iconic spots',
       'historical_places': 'Historical sites, museums, and cultural heritage',
@@ -448,28 +456,26 @@ Format each day clearly with:
 
 Include practical details like opening hours and best times to visit.`;
 
-    console.log("Calling OpenAI GPT-4o-mini for generation...");
+    console.log("Calling Lovable AI Gateway for generation...");
     
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-3-flash-preview',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
         ],
-        temperature: 0.4, // Lower temperature for more factual responses
-        max_tokens: 4000,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("OpenAI error:", response.status, errorText);
+      console.error("Lovable AI error:", response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -477,12 +483,18 @@ Include practical details like opening hours and best times to visit.`;
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: "Payment required. Please add credits to your workspace." }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
       
-      throw new Error(`OpenAI error: ${response.status}`);
+      throw new Error(`Lovable AI error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log("OpenAI response received successfully");
+    console.log("Lovable AI response received successfully");
     
     const itinerary = data.choices?.[0]?.message?.content || "Unable to generate itinerary. Please try again.";
 
