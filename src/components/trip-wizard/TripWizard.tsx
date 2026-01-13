@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTripWizard } from '@/hooks/useTripWizard';
 import { WizardProgress } from './WizardProgress';
@@ -144,9 +144,9 @@ export const TripWizard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-28">
       {/* Progress Bar */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border">
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border">
         <WizardProgress
           currentStep={step}
           totalSteps={totalSteps}
@@ -155,20 +155,22 @@ export const TripWizard = () => {
       </div>
 
       {/* Step Content */}
-      <div className="container max-w-4xl mx-auto px-4 py-8">
-        {renderStep()}
+      <div className="container max-w-4xl mx-auto px-4 py-10">
+        <div className="animate-fade-in-up" key={step}>
+          {renderStep()}
+        </div>
       </div>
 
-      {/* Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm border-t border-border p-4">
+      {/* Navigation - Fixed bottom bar with vibrant styling */}
+      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background/95 to-background/80 backdrop-blur-md border-t border-border p-4 z-20">
         <div className="container max-w-4xl mx-auto flex justify-between items-center">
           <Button
             variant="ghost"
             onClick={prevStep}
             disabled={step === 1 || isGenerating}
-            className="gap-2"
+            className="gap-2 group hover:bg-muted"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
             Back
           </Button>
 
@@ -176,26 +178,26 @@ export const TripWizard = () => {
             <Button
               onClick={nextStep}
               disabled={!canProceed()}
-              className="gap-2"
+              className="gap-2 group shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all"
             >
               Continue
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </Button>
           ) : (
             <Button
               onClick={handleGenerate}
               disabled={isGenerating}
-              className="gap-2 bg-primary hover:bg-primary/90"
+              className="gap-3 px-8 h-12 bg-gradient-to-r from-primary to-primary/90 shadow-xl shadow-primary/30 hover:shadow-primary/50 transition-all hover:scale-105 animate-pulse-glow group"
             >
               {isGenerating ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                  Generating...
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Generating Magic...</span>
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-4 h-4" />
-                  Generate Itinerary
+                  <Sparkles className="w-5 h-5 group-hover:animate-wiggle" />
+                  <span>Generate Itinerary</span>
                 </>
               )}
             </Button>

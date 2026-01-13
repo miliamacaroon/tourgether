@@ -776,54 +776,73 @@ const Itinerary = () => {
       </header>
 
       {/* Hero */}
-      <section className="relative bg-gradient-to-br from-primary/10 via-background to-accent/10 py-16 overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent/10 rounded-full blur-2xl"></div>
+      <section className="relative bg-gradient-to-br from-primary/20 via-background to-accent/20 py-20 overflow-hidden">
+        {/* Animated decorative elements */}
+        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-br from-accent/20 to-accent/5 rounded-full blur-3xl animate-float" style={{ animationDelay: '1.5s' }} />
+        <div className="absolute top-1/2 left-1/3 w-32 h-32 bg-primary/10 rounded-full blur-2xl animate-float" style={{ animationDelay: '0.8s' }} />
+        
+        {/* Geometric patterns */}
+        <div className="absolute top-10 left-10 w-16 h-16 border-2 border-primary/20 rounded-2xl rotate-12 animate-spin-slow" />
+        <div className="absolute bottom-10 right-10 w-20 h-20 border-2 border-accent/20 rounded-full animate-spin-slow" style={{ animationDirection: 'reverse' }} />
+        
         <div className="container max-w-6xl mx-auto px-4 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 bg-primary/15 backdrop-blur-sm px-5 py-2.5 rounded-full mb-6 border border-primary/20">
-            <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-semibold text-primary">AI-Generated Itinerary</span>
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/20 to-accent/20 backdrop-blur-sm px-6 py-3 rounded-full mb-8 border border-primary/30 shadow-lg animate-fade-in">
+            <Sparkles className="w-5 h-5 text-primary animate-pulse" />
+            <span className="text-sm font-bold bg-gradient-to-r from-primary to-accent-foreground bg-clip-text text-transparent">
+              AI-Generated Itinerary
+            </span>
           </div>
-          <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
-            Your Trip to {tripData.destination}
+          <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+            Your Trip to{' '}
+            <span className="bg-gradient-to-r from-primary via-primary to-accent-foreground bg-clip-text text-transparent">
+              {tripData.destination}
+            </span>
           </h1>
-          <p className="text-muted-foreground text-lg">
-            {tripData.daysCount} days of adventure await you
+          <p className="text-xl text-muted-foreground animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            {tripData.daysCount} days of unforgettable adventure await you ✨
           </p>
         </div>
       </section>
 
       {/* Trip Summary */}
-      <section className="py-8 border-b border-border">
+      <section className="py-8 border-b border-border relative">
         <div className="container max-w-6xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="flex items-center gap-3 p-4 bg-card rounded-xl border border-border">
-              <Calendar className="w-6 h-6 text-primary" />
+            <div className="group flex items-center gap-3 p-5 bg-gradient-to-br from-card to-card/80 rounded-2xl border border-border hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1">
+              <div className="p-2.5 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                <Calendar className="w-5 h-5 text-primary" />
+              </div>
               <div>
-                <p className="text-xs text-muted-foreground">Dates</p>
-                <p className="font-semibold text-sm">{formatDate(tripData.startDate)} - {formatDate(tripData.endDate)}</p>
+                <p className="text-xs text-muted-foreground font-medium">Dates</p>
+                <p className="font-bold text-sm text-foreground">{formatDate(tripData.startDate)} - {formatDate(tripData.endDate)}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-4 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl border border-primary/30">
-              <Clock className="w-6 h-6 text-primary" />
+            <div className="group flex items-center gap-3 p-5 bg-gradient-to-br from-primary/25 via-primary/15 to-primary/10 rounded-2xl border border-primary/40 shadow-lg shadow-primary/10 hover:-translate-y-1 transition-all duration-300">
+              <div className="p-2.5 rounded-xl bg-primary/30">
+                <Clock className="w-5 h-5 text-primary" />
+              </div>
               <div>
-                <p className="text-xs text-primary/70">Duration</p>
-                <p className="font-semibold text-sm text-primary">{tripData.daysCount} days</p>
+                <p className="text-xs text-primary/80 font-medium">Duration</p>
+                <p className="font-bold text-sm text-primary">{tripData.daysCount} days</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-4 bg-card rounded-xl border border-border">
-              <Wallet className="w-6 h-6 text-primary" />
+            <div className="group flex items-center gap-3 p-5 bg-gradient-to-br from-card to-card/80 rounded-2xl border border-border hover:border-accent/30 transition-all duration-300 hover:shadow-lg hover:shadow-accent/10 hover:-translate-y-1">
+              <div className="p-2.5 rounded-xl bg-accent/30 group-hover:bg-accent/40 transition-colors">
+                <Wallet className="w-5 h-5 text-accent-foreground" />
+              </div>
               <div>
-                <p className="text-xs text-muted-foreground">Budget</p>
-                <p className="font-semibold text-sm">{tripData.currency} {tripData.budgetMin.toLocaleString()} - {tripData.budgetMax.toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground font-medium">Budget</p>
+                <p className="font-bold text-sm text-foreground">{tripData.currency} {tripData.budgetMin.toLocaleString()} - {tripData.budgetMax.toLocaleString()}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-4 bg-card rounded-xl border border-border">
-              <Users className="w-6 h-6 text-primary" />
+            <div className="group flex items-center gap-3 p-5 bg-gradient-to-br from-card to-card/80 rounded-2xl border border-border hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1">
+              <div className="p-2.5 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                <Users className="w-5 h-5 text-primary" />
+              </div>
               <div>
-                <p className="text-xs text-muted-foreground">Travelers</p>
-                <p className="font-semibold text-sm">{tripData.travelers} {tripData.travelers === 1 ? 'person' : 'people'}</p>
+                <p className="text-xs text-muted-foreground font-medium">Travelers</p>
+                <p className="font-bold text-sm text-foreground">{tripData.travelers} {tripData.travelers === 1 ? 'person' : 'people'}</p>
               </div>
             </div>
           </div>
@@ -832,26 +851,29 @@ const Itinerary = () => {
 
       {/* RAG Sources Info */}
       {sources && (sources.databaseAttractions > 0 || sources.databaseRestaurants > 0 || sources.webSources > 0) && (
-        <section className="py-4 border-b border-border bg-muted/30">
+        <section className="py-6 border-b border-border bg-gradient-to-r from-muted/50 via-muted/30 to-muted/50">
           <div className="container max-w-6xl mx-auto px-4">
             <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
-              <span className="text-muted-foreground font-medium">Powered by:</span>
+              <span className="text-muted-foreground font-semibold flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-primary" />
+                Powered by:
+              </span>
               {sources.databaseAttractions > 0 && (
-                <div className="flex items-center gap-2 bg-primary/10 px-3 py-1.5 rounded-full">
+                <div className="flex items-center gap-2 bg-gradient-to-r from-primary/20 to-primary/10 px-4 py-2 rounded-full border border-primary/30 shadow-sm">
                   <Database className="w-4 h-4 text-primary" />
-                  <span className="text-primary font-medium">{sources.databaseAttractions} Attractions</span>
+                  <span className="text-primary font-bold">{sources.databaseAttractions} Attractions</span>
                 </div>
               )}
               {sources.databaseRestaurants > 0 && (
-                <div className="flex items-center gap-2 bg-accent/10 px-3 py-1.5 rounded-full">
+                <div className="flex items-center gap-2 bg-gradient-to-r from-accent/30 to-accent/10 px-4 py-2 rounded-full border border-accent/30 shadow-sm">
                   <MapPin className="w-4 h-4 text-accent-foreground" />
-                  <span className="text-accent-foreground font-medium">{sources.databaseRestaurants} Restaurants</span>
+                  <span className="text-accent-foreground font-bold">{sources.databaseRestaurants} Restaurants</span>
                 </div>
               )}
               {sources.webSources > 0 && (
-                <div className="flex items-center gap-2 bg-muted px-3 py-1.5 rounded-full border border-border">
+                <div className="flex items-center gap-2 bg-muted px-4 py-2 rounded-full border border-border shadow-sm">
                   <Search className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground font-medium">{sources.webSources} Web Sources</span>
+                  <span className="text-muted-foreground font-bold">{sources.webSources} Web Sources</span>
                 </div>
               )}
             </div>
@@ -861,50 +883,68 @@ const Itinerary = () => {
 
       {/* Featured Attractions Gallery */}
       {attractions.length > 0 && (
-        <section className="py-10 bg-muted/20">
-          <div className="container max-w-6xl mx-auto px-4">
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-4 border border-primary/20">
+        <section className="py-16 bg-gradient-to-b from-muted/30 to-background relative overflow-hidden">
+          {/* Background decoration */}
+          <div className="absolute top-20 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+          
+          <div className="container max-w-6xl mx-auto px-4 relative z-10">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/20 to-primary/10 px-5 py-2.5 rounded-full mb-6 border border-primary/30 shadow-md">
                 <MapPin className="w-5 h-5 text-primary" />
-                <span className="text-sm font-semibold text-primary">Featured Attractions</span>
+                <span className="text-sm font-bold text-primary">Featured Attractions</span>
               </div>
-              <h2 className="text-2xl font-bold text-foreground">Places You'll Visit</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+                Amazing{' '}
+                <span className="bg-gradient-to-r from-primary to-accent-foreground bg-clip-text text-transparent">
+                  Places You'll Visit
+                </span>
+              </h2>
+              <p className="text-muted-foreground max-w-xl mx-auto">
+                Handpicked attractions based on your preferences
+              </p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {attractions.slice(0, 6).map((attraction) => (
-                <Card key={attraction.id} className="overflow-hidden group hover:shadow-xl transition-all duration-300 border border-border">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {attractions.slice(0, 6).map((attraction, index) => (
+                <Card 
+                  key={attraction.id} 
+                  className="overflow-hidden group hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 border-0 bg-card hover:-translate-y-2 animate-fade-in-up"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
                   {attraction.picture ? (
                     <div className="aspect-video relative overflow-hidden">
                       <img 
                         src={attraction.picture} 
                         alt={attraction.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = '/placeholder.svg';
                         }}
                       />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       {attraction.rating && (
-                        <div className="absolute top-3 right-3 flex items-center gap-1 bg-background/90 backdrop-blur-sm px-2 py-1 rounded-full">
+                        <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-background/95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
                           <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                          <span className="text-sm font-semibold">{attraction.rating}</span>
+                          <span className="text-sm font-bold">{attraction.rating}</span>
                         </div>
                       )}
                     </div>
                   ) : (
-                    <div className="aspect-video bg-muted flex items-center justify-center">
-                      <MapPin className="w-12 h-12 text-muted-foreground/50" />
+                    <div className="aspect-video bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
+                      <MapPin className="w-14 h-14 text-muted-foreground/30" />
                     </div>
                   )}
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold text-foreground mb-2 line-clamp-1">{attraction.name}</h3>
+                  <CardContent className="p-5">
+                    <h3 className="font-bold text-lg text-foreground mb-2 line-clamp-1 group-hover:text-primary transition-colors">
+                      {attraction.name}
+                    </h3>
                     {attraction.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">{attraction.description}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{attraction.description}</p>
                     )}
                     {attraction.categories && attraction.categories.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-3">
+                      <div className="flex flex-wrap gap-2">
                         {attraction.categories.slice(0, 3).map((cat, i) => (
-                          <span key={i} className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                          <span key={i} className="text-xs bg-gradient-to-r from-primary/15 to-primary/10 text-primary px-3 py-1 rounded-full font-medium border border-primary/20">
                             {cat}
                           </span>
                         ))}
@@ -920,14 +960,25 @@ const Itinerary = () => {
 
       {/* Featured Restaurants */}
       {restaurants.length > 0 && (
-        <section className="py-10 border-t border-border">
-          <div className="container max-w-6xl mx-auto px-4">
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-2 bg-accent/10 px-4 py-2 rounded-full mb-4 border border-accent/20">
-                <span className="text-lg">🍽️</span>
-                <span className="text-sm font-semibold text-accent-foreground">Dining Recommendations</span>
+        <section className="py-16 border-t border-border relative overflow-hidden">
+          {/* Background decoration */}
+          <div className="absolute bottom-20 left-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl" />
+          
+          <div className="container max-w-6xl mx-auto px-4 relative z-10">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-accent/30 to-accent/10 px-5 py-2.5 rounded-full mb-6 border border-accent/30 shadow-md">
+                <span className="text-xl">🍽️</span>
+                <span className="text-sm font-bold text-accent-foreground">Dining Recommendations</span>
               </div>
-              <h2 className="text-2xl font-bold text-foreground">Where You'll Eat</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+                Delicious{' '}
+                <span className="bg-gradient-to-r from-accent-foreground to-primary bg-clip-text text-transparent">
+                  Places to Eat
+                </span>
+              </h2>
+              <p className="text-muted-foreground max-w-xl mx-auto">
+                Curated dining experiences for every taste
+              </p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
