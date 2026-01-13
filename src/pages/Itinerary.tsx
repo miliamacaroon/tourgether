@@ -805,11 +805,11 @@ const Itinerary = () => {
                 <p className="font-semibold text-sm">{formatDate(tripData.startDate)} - {formatDate(tripData.endDate)}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-4 bg-card rounded-xl border border-border">
+            <div className="flex items-center gap-3 p-4 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl border border-primary/30">
               <Clock className="w-6 h-6 text-primary" />
               <div>
-                <p className="text-xs text-muted-foreground">Duration</p>
-                <p className="font-semibold text-sm">{tripData.daysCount} days</p>
+                <p className="text-xs text-primary/70">Duration</p>
+                <p className="font-semibold text-sm text-primary">{tripData.daysCount} days</p>
               </div>
             </div>
             <div className="flex items-center gap-3 p-4 bg-card rounded-xl border border-border">
