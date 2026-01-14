@@ -339,6 +339,11 @@ const Itinerary = () => {
           continue;
         }
         
+        // Skip horizontal rules (---, ***, ___)
+        if (/^[-*_]{3,}$/.test(trimmedLine)) {
+          continue;
+        }
+        
         // Detect markdown table
         if (trimmedLine.startsWith('|') && trimmedLine.endsWith('|')) {
           const cells = trimmedLine.split('|').filter(c => c.trim()).map(c => c.trim());
