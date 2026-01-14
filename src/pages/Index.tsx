@@ -67,7 +67,7 @@ const Index = () => {
             <Button 
               onClick={() => navigate('/plan')}
               size="lg"
-              className="gap-3 h-16 px-10 text-lg rounded-full shadow-2xl shadow-primary/30 hover:shadow-primary/50 transition-all duration-300 hover:scale-105 bg-gradient-to-r from-primary to-primary/90 group animate-pulse-glow"
+              className="gap-3 h-16 px-10 text-lg rounded-full shadow-2xl shadow-primary/30 hover:shadow-primary/50 transition-all duration-300 hover:scale-105 bg-gradient-to-r from-primary to-primary/90 group animate-shimmer"
             >
               <Sparkles className="w-6 h-6 group-hover:animate-wiggle" />
               Start Your Journey
