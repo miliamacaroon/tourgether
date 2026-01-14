@@ -150,7 +150,7 @@ const DayCard = ({ dayNumber, title, attractions, restaurants, children, totalDa
                       </p>
                       {attraction.categories && attraction.categories.length > 0 && (
                         <p className="text-white/70 text-xs mt-0.5 line-clamp-1">
-                          {attraction.categories.slice(0, 2).join(' • ')}
+                          {attraction.categories.slice(0, 2).map(cat => String(cat).replace(/[\[\]']/g, '').trim()).join(', ')}
                         </p>
                       )}
                     </div>
