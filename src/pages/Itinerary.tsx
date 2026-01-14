@@ -1002,9 +1002,12 @@ const Itinerary = () => {
                     )}
                     {attraction.categories && attraction.categories.length > 0 && (
                       <div className="flex flex-wrap gap-2">
-                        {attraction.categories.slice(0, 3).map((cat, i) => (
+                        {(Array.isArray(attraction.categories) 
+                          ? attraction.categories 
+                          : JSON.parse(String(attraction.categories).replace(/'/g, '"'))
+                        ).slice(0, 3).map((cat: string, i: number) => (
                           <span key={i} className="text-xs bg-gradient-to-r from-primary/15 to-primary/10 text-primary px-3 py-1 rounded-full font-medium border border-primary/20">
-                            {cat}
+                            {String(cat).replace(/[\[\]'"]/g, '').trim()}
                           </span>
                         ))}
                       </div>
