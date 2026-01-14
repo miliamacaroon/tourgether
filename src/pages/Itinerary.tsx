@@ -599,13 +599,10 @@ const Itinerary = () => {
               const ratingY = yPosition + (nameLines.length > 1 ? 22 : 18);
               doc.setFillColor(gold.r, gold.g, gold.b);
               doc.circle(textXPos + 3, ratingY - 1, 3, 'F');
-              doc.setTextColor(255, 255, 255);
-              doc.setFontSize(6);
-              doc.setFont('helvetica', 'bold');
-              doc.text('★', textXPos + 1.5, ratingY + 1);
               
               doc.setTextColor(goldDark.r, goldDark.g, goldDark.b);
               doc.setFontSize(8);
+              doc.setFont('helvetica', 'bold');
               doc.text(`${attraction.rating}`, textXPos + 9, ratingY);
             }
             
@@ -708,13 +705,10 @@ const Itinerary = () => {
               const ratingY = yPosition + (nameLines.length > 1 ? 22 : 18);
               doc.setFillColor(gold.r, gold.g, gold.b);
               doc.circle(textXPos + 3, ratingY - 1, 3, 'F');
-              doc.setTextColor(255, 255, 255);
-              doc.setFontSize(6);
-              doc.setFont('helvetica', 'bold');
-              doc.text('★', textXPos + 1.5, ratingY + 1);
               
               doc.setTextColor(goldDark.r, goldDark.g, goldDark.b);
               doc.setFontSize(8);
+              doc.setFont('helvetica', 'bold');
               doc.text(`${restaurant.rating}`, textXPos + 9, ratingY);
             }
             
